@@ -1,0 +1,108 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Backend tests ─────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          cd src
+          python -m venv .venv
+          ./.venv/bin/pip install --upgrade pip
+          ./.venv/bin/pip install -r requirements.txt
+          ./.venv/bin/pip install pytest httpx respx pytest-asyncio
+
+      - name: Run Backend tests
+        run: |
+          cd src
+          ./.venv/bin/python -m pytest tests -v
+
+      # ── Frontend tests ─────────────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Frontend dependencies
+        run: |
+          cd src/tests-frontend
+          npm ci
+
+      - name: Run Frontend tests
+        run: |
+          cd src/tests-frontend
+          npm test -- --run
+
+      # ── GCP auth + Docker build ────────────────────────────────
+      - name: Authenticate to GCP via WIF
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
+        env:
+          IMG: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.AR_REPO }}/${{ vars.CLOUD_RUN_SERVICE }}:${{ github.sha }}
+        run: |
+          docker build -t "$IMG" .
+          docker push "$IMG"
+          echo "IMG=$IMG" >> $GITHUB_ENV
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ vars.CLOUD_RUN_SERVICE }} \
+            --image=${{ env.IMG }} \
+            --region=${{ vars.GCP_REGION }} \
+            --project=${{ vars.GCP_PROJECT_ID }} \
+            --allow-unauthenticated \
+            --execution-environment=gen2 \
+            --memory=2Gi \
+            --cpu=2 \
+            --concurrency=80 \
+            --min-instances=0 \
+            --max-instances=3 \
+            --timeout=300 \
+            --port=8080 \
+            --service-account=tokyo-3d-drone-runtime@plateau-3d-app.iam.gserviceaccount.com \
+            --set-secrets=GOOGLE_PLACES_API_KEY=google-places-api-key:latest,MAPTILER_API_KEY=MAPTILER_API_KEY:latest,IP_HASH_SALT=IP_HASH_SALT:latest \
+            --set-env-vars=RUNTIME_ROOT=/app/runtime,GCS_DATASETS_PATH=/gcs-data/datasets,RECAPTCHA_SITE_KEY=${{ secrets.RECAPTCHA_SITE_KEY }},RECAPTCHA_SCORE_THRESHOLD=0.5,RATE_LIMIT_WINDOW_SEC=60,RATE_LIMIT_MAX_POSTS=5 \
+            --add-volume=name=gcs-vol,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
+            --add-volume-mount=volume=gcs-vol,mount-path=/gcs-data
+
+      - name: Route 100% traffic to latest revision
+        run: |
+          gcloud run services update-traffic ${{ vars.CLOUD_RUN_SERVICE }} \
+            --region=${{ vars.GCP_REGION }} \
+            --project=${{ vars.GCP_PROJECT_ID }} \
+            --to-latest
+
+      - name: Print service URL
+        run: |
+          URL=$(gcloud run services describe ${{ vars.CLOUD_RUN_SERVICE }} --region=${{ vars.GCP_REGION }} --project=${{ vars.GCP_PROJECT_ID }} --format="value(status.url)")
+          echo "Service URL: $URL"
