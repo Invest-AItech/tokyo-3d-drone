@@ -29,3 +29,23 @@ describe('sisterApp.buildHref', () => {
     expect(sa.buildHref('nonexistent', 'en')).toBe('#')
   })
 })
+
+describe('sister-app 3-way (Drone added)', () => {
+  it('includes tokyo-3d-drone entry', async () => {
+    const sa = await loadSisterApp()
+    expect(sa.urls['tokyo-3d-drone']).toBeDefined()
+    expect(sa.urls['tokyo-3d-drone']).toMatch(/invest-aitech-tokyo-drone\.web\.app/)
+  })
+
+  it('builds URL for tokyo-3d-drone with lang=ja', async () => {
+    const sa = await loadSisterApp()
+    const href = sa.buildHref('tokyo-3d-drone', 'ja')
+    expect(href).toBe('https://invest-aitech-tokyo-drone.web.app/?lang=ja')
+  })
+
+  it('builds URL for tokyo-3d-drone with lang=en', async () => {
+    const sa = await loadSisterApp()
+    const href = sa.buildHref('tokyo-3d-drone', 'en')
+    expect(href).toBe('https://invest-aitech-tokyo-drone.web.app/?lang=en')
+  })
+})
