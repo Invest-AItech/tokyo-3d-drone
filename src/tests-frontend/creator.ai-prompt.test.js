@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildAIPrompt, FIELD_SPEC, INVARIANTS } from '../app/static/viewer/ai-prompt.js'
+import { buildAIPrompt, FIELD_SPEC, INVARIANTS, RECOMMENDED_SPEC } from '../app/static/viewer/ai-prompt.js'
 
 describe('buildAIPrompt', () => {
   it('contains field spec and invariants', () => {
@@ -55,5 +55,50 @@ describe('buildAIPrompt', () => {
     expect(typeof INVARIANTS).toBe('string')
     expect(FIELD_SPEC).toContain('lod')
     expect(INVARIANTS).toContain('20km')
+  })
+
+  it('exports RECOMMENDED_SPEC as a string with cinematic preset details', () => {
+    expect(typeof RECOMMENDED_SPEC).toBe('string')
+    expect(RECOMMENDED_SPEC.length).toBeGreaterThan(5000)
+    expect(RECOMMENDED_SPEC).toContain('30点プリセット')
+    expect(RECOMMENDED_SPEC).toContain('orbit_R')
+    expect(RECOMMENDED_SPEC).toContain('aim_at')
+  })
+
+  it('default mode does NOT include RECOMMENDED_SPEC', () => {
+    const empty = { v: 1, points: [], segments: [], global: {} }
+    const p = buildAIPrompt(empty)
+    expect(p).not.toContain('シネマティック・プリセット組み立て仕様書')
+    expect(p).not.toContain('orbit_R')
+  })
+
+  it('recommended mode appends RECOMMENDED_SPEC after the base prompt', () => {
+    const empty = { v: 1, points: [], segments: [], global: {} }
+    const base = buildAIPrompt(empty)
+    const rec = buildAIPrompt(empty, { recommended: true })
+    expect(rec.length).toBeGreaterThan(base.length)
+    expect(rec).toContain(base)
+    expect(rec).toContain('シネマティック・プリセット詳細仕様書')
+    expect(rec).toContain('orbit_R')
+    expect(rec).toContain('30点プリセット')
+  })
+
+  it('recommended mode respects includeCurrent option', () => {
+    const c = {
+      v: 1,
+      global: { tau: 0.4, lookaheadM: 30, bufferM: 100, lod: 'lod2', cornerRadiusM: 20 },
+      points: [
+        { id: 'A', lon: 139.9999, lat: 35.9999, altM: 50, pitchDeg: 0, headingRelDeg: 0 },
+        { id: 'B', lon: 139.0001, lat: 35.0001, altM: 50, pitchDeg: 0, headingRelDeg: 0 },
+      ],
+      segments: [{ from: 'A', to: 'B', durationS: 10 }],
+    }
+    const recWithCurrent = buildAIPrompt(c, { recommended: true, includeCurrent: true })
+    const recWithoutCurrent = buildAIPrompt(c, { recommended: true, includeCurrent: false })
+    expect(recWithCurrent).toContain('139.9999')
+    expect(recWithoutCurrent).not.toContain('139.9999')
+    // Both still include the spec
+    expect(recWithCurrent).toContain('orbit_R')
+    expect(recWithoutCurrent).toContain('orbit_R')
   })
 })

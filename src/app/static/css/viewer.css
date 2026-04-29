@@ -496,9 +496,10 @@ body[data-page="creator-spec"] .actions button {
   color: var(--text);
   margin-bottom: 0.75rem;
 }
-#ai-prompt-text {
+#ai-prompt-text,
+#ai-prompt-recommended {
   width: 100%;
-  min-height: 320px;
+  min-height: 140px;
   background: var(--bg-pane);
   color: var(--text);
   border: 1px solid var(--border);
@@ -509,6 +510,53 @@ body[data-page="creator-spec"] .actions button {
   font-size: 16px;
   line-height: 1.4;
   resize: vertical;
+}
+
+/* === AI Prompt: 2 セクション (デフォルト / おすすめ) === */
+.prompt-pair {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed var(--border);
+}
+.prompt-pair:first-of-type {
+  margin-top: 0.25rem;
+  padding-top: 0;
+  border-top: none;
+}
+.prompt-pair__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+.prompt-pair__title {
+  color: var(--accent-a);
+  font-size: 0.95em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.prompt-pair__sub {
+  color: var(--text-dim);
+  font-size: 0.78em;
+}
+.prompt-pair__copy {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.85em;
+  padding: 0.5rem 1rem;
+  background: var(--accent-a);
+  color: var(--bg);
+  border: 1px solid var(--accent-a);
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.prompt-pair__copy:hover {
+  background: var(--accent-b);
+  border-color: var(--accent-b);
+  color: var(--bg);
 }
 .modal-footer {
   padding: 0.75rem 1rem;

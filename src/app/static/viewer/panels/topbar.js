@@ -226,7 +226,10 @@ function showAIPromptModal(composition) {
   if (existing) existing.remove()
 
   const hasPoints = (composition.points?.length ?? 0) > 0
-  let promptText = buildAIPrompt(composition, { includeCurrent: hasPoints })
+
+  function build(includeCurrent, recommended) {
+    return buildAIPrompt(composition, { includeCurrent, recommended })
+  }
 
   const modal = document.createElement('div')
   modal.id = 'ai-prompt-modal'
@@ -243,33 +246,64 @@ function showAIPromptModal(composition) {
           <input type="checkbox" id="ai-include-current" ${hasPoints ? 'checked' : ''} ${hasPoints ? '' : 'disabled'}>
           現在の編集内容を起点として含める${hasPoints ? '' : '（点が未追加のため利用不可）'}
         </label>
-        <textarea id="ai-prompt-text" readonly></textarea>
+
+        <section class="prompt-pair">
+          <header class="prompt-pair__head">
+            <strong class="prompt-pair__title">① デフォルト</strong>
+            <span class="prompt-pair__sub">最小プロンプト・トークン節約</span>
+          </header>
+          <textarea id="ai-prompt-text" readonly rows="5"></textarea>
+          <button data-action="copy-prompt" class="btn-primary prompt-pair__copy">📋 デフォルトをコピー</button>
+        </section>
+
+        <section class="prompt-pair">
+          <header class="prompt-pair__head">
+            <strong class="prompt-pair__title">② おすすめ</strong>
+            <span class="prompt-pair__sub">デフォルト + 30 点シネマティック詳細仕様書（精度↑・長文）</span>
+          </header>
+          <textarea id="ai-prompt-recommended" readonly rows="5"></textarea>
+          <button data-action="copy-recommended" class="btn-primary prompt-pair__copy">📋 おすすめをコピー</button>
+        </section>
       </div>
       <footer class="modal-footer">
-        <button data-action="copy-prompt" class="btn-primary">📋 プロンプトを丸ごとコピー</button>
         <button data-action="close-modal">閉じる</button>
       </footer>
     </div>
   `
   document.body.appendChild(modal)
 
-  const textarea = modal.querySelector('#ai-prompt-text')
-  textarea.value = promptText
+  const textareaDefault = modal.querySelector('#ai-prompt-text')
+  const textareaRecommended = modal.querySelector('#ai-prompt-recommended')
 
-  modal.querySelector('#ai-include-current').addEventListener('change', (e) => {
-    promptText = buildAIPrompt(composition, { includeCurrent: e.target.checked })
-    textarea.value = promptText
-  })
+  function refresh() {
+    const includeCurrent = modal.querySelector('#ai-include-current').checked
+    textareaDefault.value = build(includeCurrent, false)
+    textareaRecommended.value = build(includeCurrent, true)
+  }
+  refresh()
+
+  modal.querySelector('#ai-include-current').addEventListener('change', refresh)
 
   modal.querySelector('.modal-close').addEventListener('click', () => modal.remove())
   modal.querySelector('[data-action="close-modal"]').addEventListener('click', () => modal.remove())
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.remove()
   })
+
   modal.querySelector('[data-action="copy-prompt"]').addEventListener('click', async () => {
     try {
-      await copyToClipboard(textarea.value)
-      showToast('AI プロンプトをコピーしました')
+      await copyToClipboard(textareaDefault.value)
+      showToast('デフォルトプロンプトをコピーしました')
+      modal.remove()
+    } catch (err) {
+      showToast(`コピー失敗: ${err.message}`)
+    }
+  })
+
+  modal.querySelector('[data-action="copy-recommended"]').addEventListener('click', async () => {
+    try {
+      await copyToClipboard(textareaRecommended.value)
+      showToast('おすすめプロンプトをコピーしました（精度↑）')
       modal.remove()
     } catch (err) {
       showToast(`コピー失敗: ${err.message}`)
