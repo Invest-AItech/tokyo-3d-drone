@@ -710,34 +710,59 @@
       </div>
     </section>
 
-    <!-- ============ 06 · SISTER APP (cross-link) ============ -->
+    <!-- ============ 06 · SISTER APPS (cross-link · 2 cards: View + Route) ============ -->
     <section class="sec section--cross-link" id="sister" data-show="overview">
       <div class="container">
         <div class="section-header">
           <span class="sec-kicker" data-i18n="crossLink.kicker">06</span>
-          <span class="sec-tag" data-i18n="crossLink.tag">PLATEAU 3D App</span>
+          <span class="sec-tag" data-i18n="crossLink.sectionTitle">3 部作の他のミッション</span>
         </div>
-        <div class="cross-link-card">
-          <div class="cross-link-text">
-            <h2>
-              <span data-i18n="crossLink.headingAccent">飛び続けるのもいいけれど、</span><br>
-              <span class="accent-blue-purple" data-i18n="crossLink.headingAccentBlue">じっくり見たい建物があるなら。</span>
-            </h2>
-            <p data-i18n="crossLink.body">ルートを飛ばずに、建物 1 棟 1 棟を 3D で見て回りたいなら Plateau 3D App がある。東京 23 区の全ビルを LOD2 でブラウザ表示、クリックすれば属性も確認できる。</p>
-            <a href="#" class="cta cta--cross-link" data-cross-link data-cross-link-target="plateau-3d-app" data-i18n="crossLink.button">Plateau 3D App を試す →</a>
-          </div>
-          <div class="cross-link-visual">
-            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- 建物群アイコン -->
-              <rect x="40" y="100" width="30" height="80" fill="#3b82f6" opacity="0.7"/>
-              <rect x="80" y="60" width="35" height="120" fill="#6366f1" opacity="0.8"/>
-              <rect x="125" y="90" width="35" height="90" fill="#8b5cf6" opacity="0.7"/>
-              <rect x="170" y="120" width="20" height="60" fill="#a78bfa" opacity="0.6"/>
-              <!-- マウスカーソル＋ピン -->
-              <circle cx="100" cy="50" r="8" fill="#3b82f6" stroke="#8b5cf6" stroke-width="2"/>
-              <line x1="100" y1="50" x2="100" y2="60" stroke="#8b5cf6" stroke-width="2"/>
-            </svg>
-          </div>
+        <div class="cross-link-grid">
+          <!-- MISSION 01 · VIEW -->
+          <a class="cross-link-card" href="#" data-cross-link data-cross-link-target="plateau-3d-app">
+            <div class="cross-link-text">
+              <span class="kicker" data-i18n="crossLink.view.kicker">MISSION 01 · VIEW</span>
+              <h3 data-i18n="crossLink.view.title">TOKYO 3D View</h3>
+              <p data-i18n="crossLink.view.desc">1 点指定で周辺建物を立体表示</p>
+              <span class="cta cta--cross-link" data-i18n="crossLink.view.button">TOKYO 3D View を試す →</span>
+            </div>
+            <div class="cross-link-visual">
+              <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="40" y="100" width="30" height="80" fill="#3b82f6" opacity="0.7"/>
+                <rect x="80" y="60" width="35" height="120" fill="#6366f1" opacity="0.8"/>
+                <rect x="125" y="90" width="35" height="90" fill="#8b5cf6" opacity="0.7"/>
+                <rect x="170" y="120" width="20" height="60" fill="#a78bfa" opacity="0.6"/>
+                <circle cx="100" cy="50" r="8" fill="#3b82f6" stroke="#8b5cf6" stroke-width="2"/>
+                <line x1="100" y1="50" x2="100" y2="60" stroke="#8b5cf6" stroke-width="2"/>
+              </svg>
+            </div>
+          </a>
+          <!-- MISSION 02 · ROUTE -->
+          <a class="cross-link-card" href="#" data-cross-link data-cross-link-target="plateau-route-3d">
+            <div class="cross-link-text">
+              <span class="kicker" data-i18n="crossLink.route.kicker">MISSION 02 · ROUTE</span>
+              <h3 data-i18n="crossLink.route.title">TOKYO 3D Route</h3>
+              <p data-i18n="crossLink.route.desc">2 点ルートをドローン視点で自動飛行</p>
+              <span class="cta cta--cross-link" data-i18n="crossLink.route.button">TOKYO 3D Route を試す →</span>
+            </div>
+            <div class="cross-link-visual">
+              <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- A -->
+                <circle cx="40" cy="160" r="10" fill="#22d3ee" opacity="0.4"/>
+                <circle cx="40" cy="160" r="5" fill="#22d3ee"/>
+                <text x="40" y="190" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#22d3ee" font-weight="700">A</text>
+                <!-- B -->
+                <circle cx="160" cy="40" r="10" fill="#e879f9" opacity="0.4"/>
+                <circle cx="160" cy="40" r="5" fill="#e879f9"/>
+                <text x="160" y="30" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#e879f9" font-weight="700">B</text>
+                <!-- route -->
+                <path d="M 40 160 Q 100 100 160 40" stroke="#8b5cf6" stroke-width="2.5" fill="none" stroke-dasharray="5 5" opacity="0.7"/>
+                <!-- drone -->
+                <circle cx="100" cy="100" r="6" fill="#0a0e14" stroke="#e6edf5" stroke-width="1.5"/>
+                <circle cx="100" cy="100" r="2.5" fill="#e6edf5"/>
+              </svg>
+            </div>
+          </a>
         </div>
       </div>
     </section>
