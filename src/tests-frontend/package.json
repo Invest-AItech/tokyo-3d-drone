@@ -1,0 +1,13 @@
+{
+  "name": "tokyo-3d-drone-frontend-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.0",
+    "pako": "^2.1.0",
+    "vitest": "^2.0.0"
+  }
+}
