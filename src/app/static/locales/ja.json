@@ -1,10 +1,10 @@
 {
   "hero": {
-    "kicker": "PLATEAU · 3D TILES · DRONE CAMERA",
-    "titleLine1": "A 点から B 点まで、",
-    "titleLine2": "ドローンで 飛ぶ。",
-    "lead": "国土交通省 PLATEAU の 3D 都市モデルの上を、自動ドローン視点でフライスルー。<br>2 点を選ぶだけで経路沿いのビルをすり抜けて飛び、<strong>Stop 後はマウスで街を自由に探索</strong>できる。",
-    "ctaPrimary": "▶ ビューアを開く",
+    "kicker": "MISSION 03 · DRONE",
+    "titleLine1": "自分のカメラワークで",
+    "titleLine2": "東京を撮る。",
+    "lead": "多点 + 高さ + ドローン視点。PLATEAU 3D 都市モデルの上で、<strong>自由なシネマティック映像を設計</strong>できる。複数地点を結び、高度・俯角・滑らかさを自分で詰めて、自分だけのフライト動線を組み立てる。",
+    "ctaPrimary": "▶ アプリを試す",
     "ctaSecondary": "使い方を見る",
     "metaCruise": "Cruise",
     "metaCruiseVal": "80 km/h",
@@ -110,11 +110,24 @@
     "sub": "バックエンドは Python、フロントは WebGL、インフラは Cloud Run。鍵なし CI/CD でデプロイ。"
   },
   "crossLink": {
-    "tag": "PLATEAU 3D App",
+    "tag": "3 部作の他のミッション",
     "kicker": "06",
-    "heading": "飛び続けるのもいいけれど、じっくり見たい建物があるなら。",
-    "headingAccent": "飛び続けるのもいいけれど、",
-    "headingAccentBlue": "じっくり見たい建物があるなら。",
+    "heading": "3 部作の他のミッション",
+    "headingAccent": "3 部作の",
+    "headingAccentBlue": "他のミッション",
+    "sectionTitle": "3 部作の他のミッション",
+    "view": {
+      "kicker": "MISSION 01 · VIEW",
+      "title": "TOKYO 3D View",
+      "desc": "1 点指定で周辺建物を立体表示",
+      "button": "TOKYO 3D View を試す →"
+    },
+    "route": {
+      "kicker": "MISSION 02 · ROUTE",
+      "title": "TOKYO 3D Route",
+      "desc": "2 点ルートをドローン視点で自動飛行",
+      "button": "TOKYO 3D Route を試す →"
+    },
     "body": "ルートを飛ばずに、建物 1 棟 1 棟を 3D で見て回りたいなら Plateau 3D App がある。東京 23 区の全ビルを LOD2 でブラウザ表示、クリックすれば属性も確認できる。",
     "button": "Plateau 3D App を試す →"
   },
@@ -123,9 +136,9 @@
     "siteLink": "invest-aitech.com"
   },
   "viewer": {
-    "title": "plateau-route-3d",
+    "title": "tokyo-3d-drone",
     "backLink": "Top",
-    "backAriaLabel": "plateau-route-3d トップへ戻る",
+    "backAriaLabel": "tokyo-3d-drone トップへ戻る",
     "drivingMode": "driving",
     "walkingMode": "walking",
     "modeAriaLabel": "移動モード",

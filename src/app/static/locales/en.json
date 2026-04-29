@@ -1,10 +1,10 @@
 {
   "hero": {
-    "kicker": "PLATEAU · 3D TILES · DRONE CAMERA",
-    "titleLine1": "Point A to Point B,",
-    "titleLine2": "by drone.",
-    "lead": "Automated drone-POV flythroughs over Japan's Ministry of Land PLATEAU 3D city model.<br>Pick two points, fly through the buildings along the route. <strong>After Stop, explore the city freely with your mouse.</strong>",
-    "ctaPrimary": "▶ Open Viewer",
+    "kicker": "MISSION 03 · DRONE",
+    "titleLine1": "Compose your own",
+    "titleLine2": "cinematic drone shot over Tokyo.",
+    "lead": "Multiple waypoints + altitude + drone view. <strong>Design free-form cinematic flights</strong> over PLATEAU 3D city models. Chain points, dial in altitude, pitch and damping — craft your own flight line.",
+    "ctaPrimary": "▶ Launch app",
     "ctaSecondary": "How it works",
     "metaCruise": "Cruise",
     "metaCruiseVal": "80 km/h",
@@ -110,11 +110,24 @@
     "sub": "Python backend, WebGL frontend, Cloud Run infrastructure. Keyless CI/CD deployment."
   },
   "crossLink": {
-    "tag": "PLATEAU 3D App",
+    "tag": "Other missions in the trilogy",
     "kicker": "06",
-    "heading": "Great flight. Now hover and look closer.",
-    "headingAccent": "Great flight.",
-    "headingAccentBlue": "Now hover and look closer.",
+    "heading": "Other missions in the trilogy",
+    "headingAccent": "Other missions",
+    "headingAccentBlue": "in the trilogy",
+    "sectionTitle": "Other missions in the trilogy",
+    "view": {
+      "kicker": "MISSION 01 · VIEW",
+      "title": "TOKYO 3D View",
+      "desc": "One-point lookup of surrounding buildings",
+      "button": "Try TOKYO 3D View →"
+    },
+    "route": {
+      "kicker": "MISSION 02 · ROUTE",
+      "title": "TOKYO 3D Route",
+      "desc": "Two-point route flythrough in drone view",
+      "button": "Try TOKYO 3D Route →"
+    },
     "body": "Want to inspect individual buildings instead of flying a route? Plateau 3D App has you covered. Every building in Tokyo's 23 wards rendered in LOD2 — click any one to read its attributes.",
     "button": "Try Plateau 3D App →"
   },
@@ -123,9 +136,9 @@
     "siteLink": "invest-aitech.com"
   },
   "viewer": {
-    "title": "plateau-route-3d",
+    "title": "tokyo-3d-drone",
     "backLink": "Top",
-    "backAriaLabel": "Back to plateau-route-3d top",
+    "backAriaLabel": "Back to tokyo-3d-drone top",
     "drivingMode": "driving",
     "walkingMode": "walking",
     "modeAriaLabel": "Travel mode",
