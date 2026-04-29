@@ -244,8 +244,8 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .drone {
-  animation: drone-fly 6s ease-in-out 3s infinite;
-  offset-path: path("M 80 140 Q 200 60 300 100 T 520 80");
+  animation: drone-fly 8s ease-in-out 3s infinite;
+  offset-path: path("M 60 160 Q 120 100 180 80 Q 240 60 300 40 Q 360 60 420 100 Q 480 90 540 70");
   offset-rotate: auto;
 }
 @keyframes drone-fly {
