@@ -1,0 +1,12 @@
+{
+  "projects": {
+    "default": "invest-aitech-financial"
+  },
+  "targets": {
+    "invest-aitech-financial": {
+      "hosting": {
+        "tokyo-drone": ["invest-aitech-tokyo-drone"]
+      }
+    }
+  }
+}
