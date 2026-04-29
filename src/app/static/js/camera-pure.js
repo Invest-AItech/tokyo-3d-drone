@@ -286,7 +286,10 @@ export function precomputeComposition(composition) {
     table[k].cum_m = table[k - 1].cum_m + dx
   }
 
-  // Per-segment cumulative range + duration (from speedKmh)
+  // Per-segment cumulative range + duration
+  // - durationS が指定されていればそれを使い、speedKmh は逆算（表示・後方互換用）
+  // - 未指定なら speedKmh から durationS を計算（旧データ互換）
+  const DEFAULT_SPEED_KMH = 80
   const segments = composition.segments.map((s, i) => {
     let firstIdx = -1, lastIdx = -1
     for (let k = 0; k < table.length; k++) {
@@ -298,9 +301,16 @@ export function precomputeComposition(composition) {
     const startCum = firstIdx >= 0 ? table[firstIdx].cum_m : 0
     const endCum = lastIdx >= 0 ? table[lastIdx].cum_m : 0
     const distM = endCum - startCum
-    const speedMps = (s.speedKmh * 1000) / 3600
-    const durationS = distM / Math.max(0.1, speedMps)
-    return { from: s.from, to: s.to, startCum, endCum, distM, speedKmh: s.speedKmh, durationS }
+    let durationS, speedKmh
+    if (typeof s.durationS === 'number' && s.durationS > 0) {
+      durationS = s.durationS
+      speedKmh = (distM / durationS) * 3.6  // 逆算（表示用）
+    } else {
+      speedKmh = typeof s.speedKmh === 'number' ? s.speedKmh : DEFAULT_SPEED_KMH
+      const speedMps = (speedKmh * 1000) / 3600
+      durationS = distM / Math.max(0.1, speedMps)
+    }
+    return { from: s.from, to: s.to, startCum, endCum, distM, speedKmh, durationS }
   })
 
   // Hover: 最初/最後の点は無視、中間点のみ

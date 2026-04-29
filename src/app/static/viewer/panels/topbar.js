@@ -23,6 +23,8 @@ export function mountTopbar(container, { state, actions, subscribe }) {
         <button data-action="export" data-i18n="creator.export">Export JSON</button>
         <button data-action="import" data-i18n="creator.import">Import JSON</button>
         <button data-action="ai-prompt" data-i18n="creator.aiPrompt">🤖 AI Prompt</button>
+        <button data-action="toggle-polyline" class="toolbar-btn" aria-pressed="${state.showPolyline}"
+                title="経路の表示/非表示" data-i18n-title="creator.togglePolylineHint"><span data-i18n="creator.togglePolyline">⛓️ 経路</span></button>
         <input type="file" data-action="import-file" accept="application/json,.json" hidden>
       </div>
     </div>
@@ -92,6 +94,16 @@ export function mountTopbar(container, { state, actions, subscribe }) {
 
   container.querySelector('[data-action="ai-prompt"]').addEventListener('click', () => {
     showAIPromptModal(state.composition)
+  })
+
+  // ポリライン表示 ON/OFF トグル
+  const polylineBtn = container.querySelector('[data-action="toggle-polyline"]')
+  polylineBtn.addEventListener('click', () => {
+    actions.togglePolyline()
+  })
+  // state 変化に応じて aria-pressed を更新（外部からの変更にも追従）
+  subscribe(s => {
+    polylineBtn.setAttribute('aria-pressed', String(s.showPolyline))
   })
 }
 

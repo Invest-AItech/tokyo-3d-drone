@@ -1,6 +1,28 @@
 // Edit Pane パネル (Task 2.7 本実装)
 // POINTS リスト + 選択点スライダー + 区間編集 + グローバル設定
+// 区間: 「秒で指定」(durationS, デフォルト) / 「速度で指定」(speedKmh) を toggle
 import * as C from '../constants.js'
+
+// 既存 segment の単位モードを判定（既存値があるほうが優先）
+function _segMode(seg) {
+  if (typeof seg.durationS === 'number') return 'duration'
+  if (typeof seg.speedKmh === 'number') return 'speed'
+  return 'duration'  // 不明時はデフォルト
+}
+
+// segment の haversine 距離 (m) を points から逆算（UI でモード切替時の換算に使う）
+function _segDistanceM(comp, seg) {
+  const a = comp.points.find(p => p.id === seg.from)
+  const b = comp.points.find(p => p.id === seg.to)
+  if (!a || !b) return 0
+  const R = 6_371_000
+  const phi1 = a.lat * Math.PI / 180
+  const phi2 = b.lat * Math.PI / 180
+  const dphi = (b.lat - a.lat) * Math.PI / 180
+  const dlam = (b.lon - a.lon) * Math.PI / 180
+  const x = Math.sin(dphi / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dlam / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(x))
+}
 
 export function mountEditPane(container, { state, actions, subscribe }) {
   function _esc(s) {
@@ -131,6 +153,34 @@ export function mountEditPane(container, { state, actions, subscribe }) {
       })
     })
 
+    // 区間の単位切替（durationS ⇔ speedKmh）
+    // 切替時は現在の距離からもう一方を計算して同じ動きを保つ。元の値は削除。
+    container.querySelectorAll('button[data-act="seg-unit"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.idx)
+        const targetMode = btn.dataset.mode  // 'duration' | 'speed'
+        const seg = s.composition.segments[idx]
+        if (!seg) return
+        const currentMode = _segMode(seg)
+        if (currentMode === targetMode) return
+        const distM = _segDistanceM(s.composition, seg)
+        if (targetMode === 'duration') {
+          // speedKmh → durationS。速度 0 防御。
+          const speedKmh = typeof seg.speedKmh === 'number' && seg.speedKmh > 0 ? seg.speedKmh : 80
+          const speedMps = (speedKmh * 1000) / 3600
+          let durationS = distM > 0 ? distM / speedMps : C.DEFAULT_DURATION_S
+          durationS = Math.max(C.MIN_DURATION_S, Math.min(C.MAX_DURATION_S, Math.round(durationS * 10) / 10))
+          actions.updateSegment(idx, { durationS, speedKmh: undefined })
+        } else {
+          // durationS → speedKmh
+          const durationS = typeof seg.durationS === 'number' && seg.durationS > 0 ? seg.durationS : C.DEFAULT_DURATION_S
+          let speedKmh = distM > 0 ? (distM / durationS) * 3.6 : 80
+          speedKmh = Math.max(C.MIN_SPEED_KMH, Math.min(C.MAX_SPEED_KMH, Math.round(speedKmh)))
+          actions.updateSegment(idx, { speedKmh, durationS: undefined })
+        }
+      })
+    })
+
     // i18n: render 後に data-i18n 属性を再適用
     if (window.i18n?.applyToDom) window.i18n.applyToDom()
   }
@@ -150,13 +200,32 @@ export function mountEditPane(container, { state, actions, subscribe }) {
   }
 
   function _segField(idx, seg) {
+    const mode = _segMode(seg)
+    const isDuration = mode === 'duration'
+    const min = isDuration ? C.MIN_DURATION_S : C.MIN_SPEED_KMH
+    const max = isDuration ? Math.min(C.MAX_DURATION_S, 60) : C.MAX_SPEED_KMH  // duration は実用域 60s に丸め
+    const step = isDuration ? 0.5 : 1
+    const value = isDuration ? (seg.durationS ?? C.DEFAULT_DURATION_S) : (seg.speedKmh ?? 80)
+    const unit = isDuration ? '秒' : 'km/h'
+    const key = isDuration ? 'durationS' : 'speedKmh'
     return `
       <div class="seg-row">
         <span class="seg-label">${_esc(seg.from)} → ${_esc(seg.to)}</span>
-        <input type="range" min="${C.MIN_SPEED_KMH}" max="${C.MAX_SPEED_KMH}" step="1" value="${seg.speedKmh}"
-               data-act="segment" data-key="speedKmh" data-idx="${idx}">
-        <span class="numfield-value">${seg.speedKmh} km/h</span>
-        <button class="apply-all-btn" data-act="apply-all-segment" data-key="speedKmh" data-idx="${idx}" title="この速度を全区間に反映" data-i18n="creator.applyAll">→ All</button>
+        <div class="unit-toggle" role="tablist" aria-label="区間タイミング単位">
+          <button class="unit-toggle-btn${isDuration ? ' active' : ''}"
+                  role="tab" aria-selected="${isDuration}"
+                  data-act="seg-unit" data-idx="${idx}" data-mode="duration"
+                  title="区間の所要時間を秒で指定">🕐 秒</button>
+          <button class="unit-toggle-btn${!isDuration ? ' active' : ''}"
+                  role="tab" aria-selected="${!isDuration}"
+                  data-act="seg-unit" data-idx="${idx}" data-mode="speed"
+                  title="区間の巡航速度を km/h で指定">🛞 速度</button>
+        </div>
+        <input type="range" min="${min}" max="${max}" step="${step}" value="${value}"
+               data-act="segment" data-key="${key}" data-idx="${idx}">
+        <span class="numfield-value">${value} ${unit}</span>
+        <button class="apply-all-btn" data-act="apply-all-segment" data-key="${key}" data-idx="${idx}"
+                title="この値を全区間に反映" data-i18n="creator.applyAll">→ All</button>
       </div>
     `
   }

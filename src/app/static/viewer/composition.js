@@ -4,6 +4,7 @@
 import * as C from './constants.js'
 
 const DEFAULT_SPEED_KMH = 80
+const DEFAULT_DURATION_S = C.DEFAULT_DURATION_S
 
 export function emptyComposition() {
   return {
@@ -44,8 +45,9 @@ function _withRebuiltSegments(comp) {
     const existing = comp.segments.find(
       s => s.from === comp.points[i].id && s.to === comp.points[i + 1].id
     )
+    // 既存は維持（speedKmh / durationS どちらでも）。新規は durationS デフォルト。
     segments.push(
-      existing || { from: comp.points[i].id, to: comp.points[i + 1].id, speedKmh: DEFAULT_SPEED_KMH }
+      existing || { from: comp.points[i].id, to: comp.points[i + 1].id, durationS: DEFAULT_DURATION_S }
     )
   }
   return { ...comp, segments }
@@ -142,7 +144,16 @@ export function validateComposition(c) {
     if (s.from !== ids[i] || s.to !== ids[i + 1]) {
       throw new Error(`segments[${i}] must connect ${ids[i]}->${ids[i + 1]}`)
     }
-    if (typeof s.speedKmh !== 'number' || s.speedKmh < C.MIN_SPEED_KMH || s.speedKmh > C.MAX_SPEED_KMH) {
+    // durationS（推奨）と speedKmh（後方互換）のどちらか一方が必須。両方指定時は durationS 優先。
+    const hasDuration = typeof s.durationS === 'number'
+    const hasSpeed = typeof s.speedKmh === 'number'
+    if (!hasDuration && !hasSpeed) {
+      throw new Error(`segment ${i} requires durationS or speedKmh`)
+    }
+    if (hasDuration && (s.durationS < C.MIN_DURATION_S || s.durationS > C.MAX_DURATION_S)) {
+      throw new Error(`durationS out of range at segment ${i}`)
+    }
+    if (hasSpeed && (s.speedKmh < C.MIN_SPEED_KMH || s.speedKmh > C.MAX_SPEED_KMH)) {
       throw new Error(`speedKmh out of range at segment ${i}`)
     }
   }

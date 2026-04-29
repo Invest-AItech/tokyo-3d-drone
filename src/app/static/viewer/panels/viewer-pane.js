@@ -77,16 +77,17 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
   let playCtx = null
   let lastIsPlaying = false
   let lastPointsKey = ''
+  let lastShowPolyline = null
 
   // --- overlay ---
 
-  function syncOverlay(comp) {
-    // polyline
+  function syncOverlay(comp, showPolyline = true) {
+    // polyline（showPolyline=false なら描画しない。3D + 建物のみのクリーンビューに）
     if (polylineEntity) {
       viewer.entities.remove(polylineEntity)
       polylineEntity = null
     }
-    if (comp.points.length >= 2) {
+    if (showPolyline && comp.points.length >= 2) {
       polylineEntity = viewer.entities.add({
         polyline: {
           // 3D で点と点を直線で結ぶ（地面に貼り付けず、各点の高度で空中を通す）
@@ -246,11 +247,13 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
   // --- subscribe ---
 
   subscribe(s => {
-    // points が変わったら overlay 更新（key で簡易差分）
+    // points または showPolyline が変わったら overlay 更新（key で簡易差分）
     const key = s.composition.points.map(p => `${p.id}:${p.lon}:${p.lat}:${p.altM}`).join('|')
-    if (key !== lastPointsKey) {
-      syncOverlay(s.composition)
+    const show = s.showPolyline !== false  // undefined / true → true、false のみ false
+    if (key !== lastPointsKey || show !== lastShowPolyline) {
+      syncOverlay(s.composition, show)
       lastPointsKey = key
+      lastShowPolyline = show
     }
 
     // tileset 同期（URL ?id= ベース、非同期で呼ぶが Promise は捨てない）

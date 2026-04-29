@@ -50,7 +50,8 @@ describe('addPoint / removePoint / movePoint', () => {
     c = addPoint(c, { lon: 139.7, lat: 35.6 })
     c = addPoint(c, { lon: 139.71, lat: 35.61 })
     expect(c.points.map(p => p.id)).toEqual(['A', 'B'])
-    expect(c.segments).toEqual([{ from: 'A', to: 'B', speedKmh: 80 }])
+    // 新規 segment は durationS デフォルト（10 秒）。speedKmh は後方互換のみ。
+    expect(c.segments).toEqual([{ from: 'A', to: 'B', durationS: 10 }])
   })
 
   it('removes a point and rebuilds segments', () => {
@@ -60,7 +61,7 @@ describe('addPoint / removePoint / movePoint', () => {
     c = addPoint(c, { lon: 139.72, lat: 35.62 })
     c = removePoint(c, 'B')
     expect(c.points.map(p => p.id)).toEqual(['A', 'C'])
-    expect(c.segments).toEqual([{ from: 'A', to: 'C', speedKmh: 80 }])
+    expect(c.segments).toEqual([{ from: 'A', to: 'C', durationS: 10 }])
   })
 
   it('moves a point up and rebuilds segments', () => {
@@ -113,6 +114,38 @@ describe('validateComposition', () => {
     const bad = { ...VALID, segments: [] }
     expect(() => validateComposition(bad)).toThrow(/segments/)
   })
+
+  // --- durationS / speedKmh 二択バリデーション ---
+
+  it('accepts segment with durationS only (preferred)', () => {
+    const c = JSON.parse(JSON.stringify(VALID))
+    c.segments = [{ from: 'A', to: 'B', durationS: 12 }]
+    expect(() => validateComposition(c)).not.toThrow()
+  })
+
+  it('accepts segment with speedKmh only (backward compat)', () => {
+    const c = JSON.parse(JSON.stringify(VALID))
+    c.segments = [{ from: 'A', to: 'B', speedKmh: 60 }]
+    expect(() => validateComposition(c)).not.toThrow()
+  })
+
+  it('accepts segment with both (durationS prioritized internally)', () => {
+    const c = JSON.parse(JSON.stringify(VALID))
+    c.segments = [{ from: 'A', to: 'B', durationS: 20, speedKmh: 80 }]
+    expect(() => validateComposition(c)).not.toThrow()
+  })
+
+  it('rejects segment with neither timing field', () => {
+    const c = JSON.parse(JSON.stringify(VALID))
+    c.segments = [{ from: 'A', to: 'B' }]
+    expect(() => validateComposition(c)).toThrow(/durationS|speedKmh/)
+  })
+
+  it('rejects durationS out of range', () => {
+    const c = JSON.parse(JSON.stringify(VALID))
+    c.segments = [{ from: 'A', to: 'B', durationS: 0.1 }]
+    expect(() => validateComposition(c)).toThrow(/durationS/)
+  })
 })
 
 describe('resetPoints', () => {
@@ -137,7 +170,7 @@ describe('removeLastPoint', () => {
     c = addPoint(c, { lon: 139.72, lat: 35.62 })
     const updated = removeLastPoint(c)
     expect(updated.points.map(p => p.id)).toEqual(['A', 'B'])
-    expect(updated.segments).toEqual([{ from: 'A', to: 'B', speedKmh: 80 }])
+    expect(updated.segments).toEqual([{ from: 'A', to: 'B', durationS: 10 }])
   })
 
   it('returns same composition when no points', () => {

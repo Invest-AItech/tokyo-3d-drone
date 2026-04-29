@@ -12,7 +12,8 @@ const SAMPLE_TOKYO_LINE = {
     { id: 'A', lon: 139.7671, lat: 35.6812, altM: 80, pitchDeg: -10, headingRelDeg: 0 },
     { id: 'B', lon: 139.7454, lat: 35.6586, altM: 250, pitchDeg: -30, headingRelDeg: 0 },
   ],
-  segments: [{ from: 'A', to: 'B', speedKmh: 80 }],
+  // durationS = 30 秒で AB 区間を飛ぶ（推奨）
+  segments: [{ from: 'A', to: 'B', durationS: 30 }],
 }
 
 const SAMPLE_3POINT_HOVER = {
@@ -24,9 +25,10 @@ const SAMPLE_3POINT_HOVER = {
     { id: 'B', lon: 139.7634, lat: 35.6817, altM: 120, pitchDeg: -20, headingRelDeg: 0, hoverS: 2, cornerRadiusM: 50 },
     { id: 'C', lon: 139.7671, lat: 35.6812, altM: 100, pitchDeg: -15, headingRelDeg: 0 },
   ],
+  // 区間ごとに durationS を秒で指定（推奨）
   segments: [
-    { from: 'A', to: 'B', speedKmh: 60 },
-    { from: 'B', to: 'C', speedKmh: 80 },
+    { from: 'A', to: 'B', durationS: 15 },
+    { from: 'B', to: 'C', durationS: 12 },
   ],
 }
 
@@ -66,7 +68,10 @@ export const FIELD_SPEC = `## フォーマット仕様 v1
 | フィールド | 型 | 範囲 | 説明 |
 |---|---|---|---|
 | from / to | str | points[].id を参照 | 必ず順序通り (A→B, B→C, ...) |
-| speedKmh | num | 1–200 | 区間の巡航速度 |
+| durationS | num | 0.5–600 (秒) | 区間の所要時間（推奨）。指定時は速度より優先 |
+| speedKmh | num | 1–200 (km/h) | 区間の巡航速度（durationS 未指定時に使う、後方互換） |
+
+**注:** durationS と speedKmh のどちらか一方を必ず指定。新規生成では durationS を推奨（直感的に総尺を制御できる）。総尺 = 各区間の durationS の合計 + 各点の hoverS の合計。
 `
 
 export const INVARIANTS = `## 不変条件
@@ -113,6 +118,7 @@ ${exportComposition(composition)}
 - 仕様外のフィールドは追加しない
 - 緯度経度は WGS84 (10 進)
 - 東京 23 区範囲内が動作確認済み
+- 区間タイミングは **durationS（秒）** を優先して指定する（直感的かつ総尺を意図通りに制御できる）。\`speedKmh\` も使えるが後方互換用。
 
 ${FIELD_SPEC}
 

@@ -10,12 +10,27 @@ import { mountEditPane } from './panels/edit-pane.js'
 import { loadCompositionById } from './loader.js'
 import { mountPlaceSearchDrone } from '/static/js/ui-place-search-drone.js'
 
+// localStorage 安全アクセス（SSR や Privacy mode で window.localStorage が無い場合の fallback）
+function _readShowPolyline() {
+  try {
+    return localStorage.getItem('drone_show_polyline') !== 'false'
+  } catch {
+    return true
+  }
+}
+function _writeShowPolyline(v) {
+  try {
+    localStorage.setItem('drone_show_polyline', String(v))
+  } catch { /* ignore */ }
+}
+
 const state = {
   composition: emptyComposition(),
   selectedPointId: null,
   isPlaying: false,
   playStartedFromPointId: null,
   previewTilesTrigger: 0,
+  showPolyline: _readShowPolyline(),
 }
 
 const subscribers = new Set()
@@ -26,6 +41,7 @@ function setState(updater) {
   if ('isPlaying' in updater) state.isPlaying = updater.isPlaying
   if ('playStartedFromPointId' in updater) state.playStartedFromPointId = updater.playStartedFromPointId
   if ('previewTilesTrigger' in updater) state.previewTilesTrigger = updater.previewTilesTrigger
+  if ('showPolyline' in updater) state.showPolyline = updater.showPolyline
   for (const s of subscribers) s(state)
 }
 
@@ -45,7 +61,15 @@ const actions = {
     setState({ composition: { ...state.composition, points: newPoints } })
   },
   updateSegment: (idx, patch) => {
-    const newSegments = state.composition.segments.map((s, i) => (i === idx ? { ...s, ...patch } : s))
+    // patch のキーで undefined のものは削除する（durationS ⇔ speedKmh 切替時に古い方を消すため）
+    const newSegments = state.composition.segments.map((s, i) => {
+      if (i !== idx) return s
+      const merged = { ...s, ...patch }
+      for (const k of Object.keys(patch)) {
+        if (patch[k] === undefined) delete merged[k]
+      }
+      return merged
+    })
     setState({ composition: { ...state.composition, segments: newSegments } })
   },
   updateGlobal: patch => {
@@ -64,6 +88,11 @@ const actions = {
   applyToAllPoints: (key, value) => setState({ composition: applyToAllPoints(state.composition, key, value) }),
   applyToAllSegments: (key, value) => setState({ composition: applyToAllSegments(state.composition, key, value) }),
   triggerPreviewTiles: () => setState({ previewTilesTrigger: Date.now() }),
+  togglePolyline: () => {
+    const next = !state.showPolyline
+    _writeShowPolyline(next)
+    setState({ showPolyline: next })
+  },
 }
 
 mountTopbar(document.getElementById('topbar'), { state, actions, subscribe })

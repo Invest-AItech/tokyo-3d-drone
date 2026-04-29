@@ -62,6 +62,24 @@ class TestSegment:
         assert s.from_ == "A"
         assert s.to == "B"
         assert s.speedKmh == 80
+        assert s.durationS is None
+
+    def test_valid_segment_with_duration_only(self):
+        # durationS 単独（推奨フォーマット）
+        s = Segment(**{"from": "A", "to": "B", "durationS": 12.5})
+        assert s.durationS == 12.5
+        assert s.speedKmh is None
+
+    def test_valid_segment_with_both(self):
+        # 両方指定は許容（durationS が優先される。バリデーションは通る）
+        s = Segment(**{"from": "A", "to": "B", "durationS": 30, "speedKmh": 80})
+        assert s.durationS == 30
+        assert s.speedKmh == 80
+
+    def test_segment_without_timing_rejected(self):
+        # どちらも未指定は不正
+        with pytest.raises(ValidationError, match="duration"):
+            Segment(**{"from": "A", "to": "B"})
 
     def test_speed_below_min_rejected(self):
         with pytest.raises(ValidationError):
@@ -70,6 +88,14 @@ class TestSegment:
     def test_speed_above_max_rejected(self):
         with pytest.raises(ValidationError):
             Segment(**{"from": "A", "to": "B", "speedKmh": 201})
+
+    def test_duration_below_min_rejected(self):
+        with pytest.raises(ValidationError):
+            Segment(**{"from": "A", "to": "B", "durationS": 0.1})
+
+    def test_duration_above_max_rejected(self):
+        with pytest.raises(ValidationError):
+            Segment(**{"from": "A", "to": "B", "durationS": 601})
 
 
 class TestGlobalSettings:

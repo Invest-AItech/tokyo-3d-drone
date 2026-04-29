@@ -18,6 +18,8 @@ MAX_BUFFER_M = 500
 MIN_BUFFER_M = 50
 MAX_SPEED_KMH = 200
 MIN_SPEED_KMH = 1
+MIN_DURATION_S = 0.5
+MAX_DURATION_S = 600.0
 MAX_ALT_M = 500
 MIN_ALT_M = 1
 MAX_HOVER_S = 10
@@ -42,9 +44,18 @@ class Point(BaseModel):
 class Segment(BaseModel):
     from_: str = Field(alias="from", min_length=1, max_length=8)
     to: str = Field(min_length=1, max_length=8)
-    speedKmh: float = Field(ge=MIN_SPEED_KMH, le=MAX_SPEED_KMH)
+    # durationS（推奨）と speedKmh（後方互換）のどちらか一方は必須。
+    # 両方指定時は durationS を優先（距離は自動計算なので、もう一方は逆算される）。
+    speedKmh: Optional[float] = Field(default=None, ge=MIN_SPEED_KMH, le=MAX_SPEED_KMH)
+    durationS: Optional[float] = Field(default=None, ge=MIN_DURATION_S, le=MAX_DURATION_S)
 
     model_config = {"populate_by_name": True}
+
+    @model_validator(mode="after")
+    def _at_least_one_timing(self) -> "Segment":
+        if self.durationS is None and self.speedKmh is None:
+            raise ValueError("segment requires durationS or speedKmh")
+        return self
 
 
 class GlobalSettings(BaseModel):
