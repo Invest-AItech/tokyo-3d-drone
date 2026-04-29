@@ -89,12 +89,14 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
     if (comp.points.length >= 2) {
       polylineEntity = viewer.entities.add({
         polyline: {
-          positions: Cesium.Cartesian3.fromDegreesArray(
-            comp.points.flatMap(p => [p.lon, p.lat]),
+          // 3D で点と点を直線で結ぶ（地面に貼り付けず、各点の高度で空中を通す）
+          positions: Cesium.Cartesian3.fromDegreesArrayHeights(
+            comp.points.flatMap(p => [p.lon, p.lat, p.altM]),
           ),
           width: 4,
           material: Cesium.Color.fromCssColorString(POLYLINE_COLOR).withAlpha(0.7),
-          clampToGround: true,
+          clampToGround: false,
+          arcType: Cesium.ArcType.NONE,
         },
       })
     }
