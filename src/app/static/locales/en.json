@@ -325,7 +325,7 @@
     "tabEdit": "✏️ Edit",
     "aiPrompt": "🤖 AI Prompt",
     "togglePolyline": "⛓️ Path",
-    "togglePolylineHint": "Show/hide path",
+    "togglePolylineHint": "Show/hide path and points (A, B, C, ...)",
     "placeSearch": {
       "title": "Place Search",
       "placeholder": "e.g., Tokyo Station",

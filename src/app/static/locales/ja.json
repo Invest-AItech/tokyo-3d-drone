@@ -325,7 +325,7 @@
     "tabEdit": "✏️ 編集",
     "aiPrompt": "🤖 AI Prompt",
     "togglePolyline": "⛓️ 経路",
-    "togglePolylineHint": "経路の表示/非表示",
+    "togglePolylineHint": "経路と各点 (A・B・C…) の表示/非表示",
     "placeSearch": {
       "title": "場所検索",
       "placeholder": "例: 東京駅",

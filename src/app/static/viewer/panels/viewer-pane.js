@@ -82,7 +82,8 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
   // --- overlay ---
 
   function syncOverlay(comp, showPolyline = true) {
-    // polyline（showPolyline=false なら描画しない。3D + 建物のみのクリーンビューに）
+    // polyline と points をワンセットで制御。
+    // showPolyline=false → 経路 + 各点 (ABCD...) ともに非表示にして、3D 建物 + 地図だけのクリーンビューに。
     if (polylineEntity) {
       viewer.entities.remove(polylineEntity)
       polylineEntity = null
@@ -102,7 +103,15 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
       })
     }
 
-    // points
+    // points — showPolyline=false の場合は全削除
+    if (!showPolyline) {
+      for (const ent of pointEntities.values()) {
+        viewer.entities.remove(ent)
+      }
+      pointEntities.clear()
+      return
+    }
+
     const seenIds = new Set(comp.points.map(p => p.id))
     for (const [id, ent] of pointEntities) {
       if (!seenIds.has(id)) {
