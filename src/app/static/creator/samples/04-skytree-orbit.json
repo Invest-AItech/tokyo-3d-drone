@@ -1,0 +1,24 @@
+{
+  "v": 1,
+  "_doc": "/creator/spec",
+  "name": "スカイツリー周回オービット",
+  "author": "plateau-route-3d",
+  "global": {
+    "tau": 0.6,
+    "lookaheadM": 50,
+    "bufferM": 200,
+    "lod": "lod2",
+    "cornerRadiusM": 50
+  },
+  "points": [
+    { "id": "A", "lon": 139.8107, "lat": 35.7102, "altM": 300, "pitchDeg": -20, "headingRelDeg": 90, "hoverS": 1.0 },
+    { "id": "B", "lon": 139.8130, "lat": 35.7080, "altM": 350, "pitchDeg": -25, "headingRelDeg": 90, "hoverS": 0.5 },
+    { "id": "C", "lon": 139.8107, "lat": 35.7058, "altM": 400, "pitchDeg": -30, "headingRelDeg": 90, "hoverS": 1.0 },
+    { "id": "D", "lon": 139.8084, "lat": 35.7080, "altM": 350, "pitchDeg": -25, "headingRelDeg": 90, "hoverS": 0.5 }
+  ],
+  "segments": [
+    { "from": "A", "to": "B", "speedKmh": 40 },
+    { "from": "B", "to": "C", "speedKmh": 40 },
+    { "from": "C", "to": "D", "speedKmh": 40 }
+  ]
+}

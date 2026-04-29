@@ -1,0 +1,57 @@
+import json
+from pathlib import Path
+
+import pytest
+from fastapi.testclient import TestClient
+
+from app.core.composition_models import Composition
+from app.main import app
+
+SAMPLES_DIR = (
+    Path(__file__).resolve().parents[1] / "app" / "static" / "creator" / "samples"
+)
+
+
+def test_creator_index_returns_html():
+    client = TestClient(app)
+    r = client.get("/creator/")
+    assert r.status_code == 200
+    assert "text/html" in r.headers["content-type"]
+    assert "Creator" in r.text
+
+
+def test_creator_spec_returns_markdown_rendered():
+    client = TestClient(app)
+    r = client.get("/creator/spec")
+    assert r.status_code == 200
+    assert "text/html" in r.headers["content-type"]
+    # 仕様ページには必ず "composition" が含まれる
+    assert "composition" in r.text.lower()
+
+
+def test_creator_spec_lists_sample_compositions():
+    client = TestClient(app)
+    r = client.get("/creator/spec")
+    assert r.status_code == 200
+    # 5 サンプルが全て参照されている
+    for stem in [
+        "01-tokyo-station-to-tower",
+        "02-marunouchi-loop",
+        "03-shibuya-flythrough",
+        "04-skytree-orbit",
+        "05-shinjuku-corridor",
+    ]:
+        assert f"samples/{stem}.json" in r.text
+
+
+def test_creator_spec_has_copy_button():
+    client = TestClient(app)
+    r = client.get("/creator/spec")
+    assert r.status_code == 200
+    assert "copy-spec" in r.text
+
+
+@pytest.mark.parametrize("path", sorted(SAMPLES_DIR.glob("*.json")))
+def test_each_sample_validates_against_composition_model(path):
+    data = json.loads(path.read_text(encoding="utf-8"))
+    Composition.model_validate(data)

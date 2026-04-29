@@ -1,15 +1,42 @@
+import re
+from pathlib import Path
+
 from fastapi import APIRouter
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
+
 from app.config import get_settings
 
 router = APIRouter()
 
 FIREBASE_LANDING = "https://invest-aitech-tokyo-drone.web.app/"
 
+_STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
+_LANDING_PATH = _STATIC_DIR / "landing.html"
+
 
 @router.get("/", include_in_schema=False)
 async def root_redirect():
     return RedirectResponse(FIREBASE_LANDING, status_code=301)
+
+
+def _render_landing(page_mode: str) -> HTMLResponse:
+    raw = _LANDING_PATH.read_text(encoding="utf-8")
+    if 'data-page=' in raw:
+        new_html = re.sub(
+            r'<body([^>]*)data-page="[^"]*"',
+            f'<body\\1data-page="{page_mode}"',
+            raw,
+            count=1,
+        )
+    else:
+        new_html = raw.replace("<body>", f'<body data-page="{page_mode}">', 1)
+    return HTMLResponse(content=new_html)
+
+
+@router.get("/board", include_in_schema=False)
+def board() -> HTMLResponse:
+    """コミュニティ掲示板ページ。"""
+    return _render_landing("board")
 
 
 @router.get("/api/config.js", include_in_schema=False)

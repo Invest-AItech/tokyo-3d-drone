@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>plateau-route-3d · Creator Mode</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Widgets/widgets.css">
+  <link rel="stylesheet" href="/static/css/creator.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Cesium.js"></script>
+  <script src="/api/config.js"></script>
+  <script src="/static/js/i18n.js"></script>
+  <script>
+    if (window.RECAPTCHA_SITE_KEY) {
+      const s = document.createElement('script')
+      s.src = `https://www.google.com/recaptcha/enterprise.js?render=${window.RECAPTCHA_SITE_KEY}`
+      document.head.appendChild(s)
+    }
+  </script>
+</head>
+<body data-page="creator" data-active-pane="viewer">
+  <header id="topbar"></header>
+  <main id="creator-main">
+    <section id="map-pane" class="pane"></section>
+    <section id="viewer-pane" class="pane">
+      <header class="pane-header">
+        <div class="pane-header__title" data-i18n="creator.paneViewerTitle">3D プレビュー</div>
+        <div class="pane-header__hint" data-i18n="creator.paneViewerHint">▶ Play で飛行 · 🏙️ Preview tiles で建物読込</div>
+      </header>
+      <div id="cesiumContainer" class="cesium-canvas"></div>
+      <div id="hud"></div>
+    </section>
+    <aside id="edit-pane" class="pane"></aside>
+  </main>
+  <nav id="mobile-tabs" class="mobile-tabs" role="navigation" aria-label="ペイン切替">
+    <button data-pane="map" class="mobile-tab" aria-label="マップ表示" aria-current="false" data-i18n="creator.tabMap">🗺️ マップ</button>
+    <button data-pane="viewer" class="mobile-tab" aria-label="3D 表示" aria-current="page" data-i18n="creator.tabViewer">🌐 3D</button>
+    <button data-pane="edit" class="mobile-tab" aria-label="編集パネル" aria-current="false" data-i18n="creator.tabEdit">✏️ 編集</button>
+  </nav>
+  <div id="toast" aria-live="polite"></div>
+  <script>
+    window.__i18nReady = Promise.all([
+      fetch('/static/locales/ja.json').then(r => r.json()),
+      fetch('/static/locales/en.json').then(r => r.json())
+    ]).then(([ja, en]) => {
+      window.i18n.init({
+        defaultLocale: 'ja',
+        supportedLocales: ['ja', 'en'],
+        translations: { ja, en }
+      })
+      window.i18n.applyToDom()
+    })
+  </script>
+  <script type="module" src="/static/creator/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "v": 1,
+  "_doc": "/creator/spec",
+  "name": "丸の内ループ（皇居外周）",
+  "author": "plateau-route-3d",
+  "global": {
+    "tau": 0.5,
+    "lookaheadM": 40,
+    "bufferM": 150,
+    "lod": "lod2",
+    "cornerRadiusM": 30
+  },
+  "points": [
+    { "id": "A", "lon": 139.7528, "lat": 35.6852, "altM": 120, "pitchDeg": -15, "headingRelDeg": 0, "hoverS": 1.0 },
+    { "id": "B", "lon": 139.7428, "lat": 35.6900, "altM": 100, "pitchDeg": -12, "headingRelDeg": 0 },
+    { "id": "C", "lon": 139.7393, "lat": 35.6813, "altM": 110, "pitchDeg": -15, "headingRelDeg": 0 },
+    { "id": "D", "lon": 139.7471, "lat": 35.6751, "altM": 100, "pitchDeg": -12, "headingRelDeg": 0 },
+    { "id": "E", "lon": 139.7528, "lat": 35.6800, "altM": 120, "pitchDeg": -15, "headingRelDeg": 0, "hoverS": 1.0 }
+  ],
+  "segments": [
+    { "from": "A", "to": "B", "speedKmh": 60 },
+    { "from": "B", "to": "C", "speedKmh": 60 },
+    { "from": "C", "to": "D", "speedKmh": 60 },
+    { "from": "D", "to": "E", "speedKmh": 60 }
+  ]
+}
