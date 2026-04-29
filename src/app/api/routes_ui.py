@@ -39,6 +39,12 @@ def board() -> HTMLResponse:
     return _render_landing("board")
 
 
+@router.get("/start", include_in_schema=False)
+def start() -> HTMLResponse:
+    """インタラクティブ・ランディング (CLAUDE.md アプリ作成ルール準拠)。"""
+    return _render_landing("start")
+
+
 @router.get("/api/config.js", include_in_schema=False)
 async def config_js():
     s = get_settings()
