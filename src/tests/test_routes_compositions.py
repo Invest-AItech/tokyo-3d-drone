@@ -35,7 +35,7 @@ def test_post_composition_returns_id_and_url(
     assert r.status_code == 201
     body = r.json()
     assert body["id"] == "abc12345"
-    assert "/creator/?id=abc12345" in body["url"]
+    assert "/viewer/?id=abc12345" in body["url"]
 
 
 @patch("app.api.routes_compositions.composition_service")

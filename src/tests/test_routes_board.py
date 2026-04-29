@@ -126,7 +126,7 @@ def test_create_post_composition_type(mock_board_service: MagicMock, mock_recapt
     with patch("app.services.composition_service.mark_board_posted") as mock_mark:
         r = client.post("/api/v1/board/posts", json={
             "title": "comp post",
-            "presetUrl": "https://x.com/creator/?id=abc12345",
+            "presetUrl": "https://x.com/viewer/?id=abc12345",
             "recaptchaToken": "t",
             "postType": "composition",
             "compositionId": "abc12345",

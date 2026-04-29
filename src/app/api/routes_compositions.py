@@ -54,11 +54,11 @@ def _client_ip(request: Request) -> str:
 
 
 def _spec_url(request: Request) -> str:
-    return f"{request.url.scheme}://{request.url.netloc}/creator/spec"
+    return f"{request.url.scheme}://{request.url.netloc}/viewer/spec"
 
 
 def _public_id_url(request: Request, composition_id: str) -> str:
-    return f"{request.url.scheme}://{request.url.netloc}/creator/?id={composition_id}"
+    return f"{request.url.scheme}://{request.url.netloc}/viewer/?id={composition_id}"
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)

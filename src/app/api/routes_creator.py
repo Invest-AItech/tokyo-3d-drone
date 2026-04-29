@@ -1,4 +1,4 @@
-"""Creator Mode page handlers: /creator/ (SPA entry) and /creator/spec (docs)."""
+"""Drone Viewer page handlers: /viewer/ (SPA entry) and /viewer/spec (docs)."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -6,30 +6,30 @@ from pathlib import Path
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
-router = APIRouter(tags=["creator"])
+router = APIRouter(tags=["viewer"])
 
-_STATIC_DIR = Path(__file__).resolve().parents[1] / "static" / "creator"
+_STATIC_DIR = Path(__file__).resolve().parents[1] / "static" / "viewer"
 
 
-@router.get("/creator/", include_in_schema=False)
-@router.get("/creator", include_in_schema=False)
-def creator_index() -> HTMLResponse:
+@router.get("/viewer/", include_in_schema=False)
+@router.get("/viewer", include_in_schema=False)
+def viewer_index() -> HTMLResponse:
     html = (_STATIC_DIR / "index.html").read_text(encoding="utf-8")
     return HTMLResponse(content=html)
 
 
-@router.get("/creator/spec", include_in_schema=False)
-def creator_spec() -> HTMLResponse:
+@router.get("/viewer/spec", include_in_schema=False)
+def viewer_spec() -> HTMLResponse:
     md = (_STATIC_DIR / "spec.md").read_text(encoding="utf-8")
     samples_dir = _STATIC_DIR / "samples"
     sample_links_html = ""
     if samples_dir.exists():
         for f in sorted(samples_dir.glob("*.json")):
             sample_links_html += (
-                f'<li><a href="/static/creator/samples/{f.name}" download>{f.stem}</a></li>'
+                f'<li><a href="/static/viewer/samples/{f.name}" download>{f.stem}</a></li>'
             )
     body = f"""<!DOCTYPE html><html lang='ja'><head><meta charset='utf-8'>
-<title>composition spec · Creator Mode</title>
+<title>composition spec · Drone Viewer</title>
 <link rel='stylesheet' href='/static/css/creator.css'>
 <style>
   body {{ font-family: system-ui, sans-serif; max-width: 880px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }}
@@ -44,8 +44,8 @@ def creator_spec() -> HTMLResponse:
 <h1>composition フォーマット仕様 v1</h1>
 <div class="actions">
   <button id="copy-spec">📋 Spec を Markdown でコピー</button>
-  <a href="/static/creator/samples/01-tokyo-station-to-tower.json" download>📥 空テンプレ JSON (= サンプル 01)</a>
-  <a href="/creator/">← Creator Mode に戻る</a>
+  <a href="/static/viewer/samples/01-tokyo-station-to-tower.json" download>📥 空テンプレ JSON (= サンプル 01)</a>
+  <a href="/viewer/">← Drone Viewer に戻る</a>
 </div>
 <h2>サンプル composition</h2>
 <ul>{sample_links_html}</ul>

@@ -1,7 +1,7 @@
 """Pydantic models and constants for Creator Mode compositions.
 
 ★★★ 上限定数はこのファイルで一元管理。
-★★★ 変更したらフロント側 (src/app/static/creator/constants.js) も合わせて更新すること。
+★★★ 変更したらフロント側 (src/app/static/viewer/constants.js) も合わせて更新すること。
 """
 from __future__ import annotations
 

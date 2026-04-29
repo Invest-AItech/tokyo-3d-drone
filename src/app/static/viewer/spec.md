@@ -1,6 +1,6 @@
 # plateau-route-3d Creator Mode · composition フォーマット仕様 v1
 
-このドキュメントは Creator Mode (`/creator/`) で使用する composition JSON の仕様です。
+このドキュメントは Creator Mode (`/viewer/`) で使用する composition JSON の仕様です。
 あなた (AI) はこの仕様に従って `composition.json` を生成すれば、ユーザーがそのまま Creator にインポートして再生できます。
 
 ## 概要
