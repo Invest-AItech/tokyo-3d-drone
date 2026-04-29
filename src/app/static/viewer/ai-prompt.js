@@ -104,7 +104,7 @@ ${exportComposition(composition)}
 （まだ点を追加していません。最初から作成してください）
 `
 
-  return `あなたは plateau-route-3d Creator Mode の composition JSON 設計者です。
+  return `あなたは tokyo-3d-drone (Composition Editor) の composition JSON 設計者です。
 ユーザーの希望に沿って、以下の仕様に従って composition JSON を生成してください。
 
 ## 出力ルール

@@ -5,7 +5,7 @@ describe('buildAIPrompt', () => {
   it('contains field spec and invariants', () => {
     const empty = { v: 1, points: [], segments: [], global: {} }
     const p = buildAIPrompt(empty)
-    expect(p).toContain('plateau-route-3d Creator Mode')
+    expect(p).toContain('tokyo-3d-drone (Composition Editor)')
     expect(p).toContain('フォーマット仕様 v1')
     expect(p).toContain('不変条件')
     expect(p).toContain('サンプル 1')

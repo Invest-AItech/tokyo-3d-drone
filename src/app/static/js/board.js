@@ -84,7 +84,7 @@ export function renderCard(post, { variant = 'recent' } = {}) {
     badge.textContent = tr('board.badgeComposition', 'Creator')
     badge.classList.add('badge-composition')
   } else {
-    badge.textContent = tr('board.badgePreset', 'A→B')
+    badge.textContent = tr('board.badgePreset', 'Preset')
     badge.classList.add('badge-preset')
   }
   el.querySelector('.card-title').textContent = post.title

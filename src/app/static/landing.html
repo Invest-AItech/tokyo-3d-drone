@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#070a0f" />
-  <meta name="description" content="A 点 → B 点のルートを PLATEAU 3D 都市モデルの上で自動ドローン視点フライスルーする WebGL デモ。巡航 80 km/h、高度・角度・先読み・平滑化の 4 ダイヤル調整に加え、Stop 後はマウス（Ctrl+右ドラッグで見下ろし角度）で街を自由に探索できる。" />
+  <meta name="description" content="多数の地点（最大 50 点）と各点の高度を指定して、ドローン視点でシネマティックなカメラワークを設計する WebGL アプリ。PLATEAU 3D 都市モデルの上を、自分が決めた構図で自由に飛ばせる。AI プロンプトから自然言語で構図 JSON も生成可能。" />
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-C878XWCJ2D"></script>
@@ -15,7 +15,7 @@
     gtag('config', 'G-C878XWCJ2D');
   </script>
 
-  <title>plateau-route-3d · A→B をドローン視点で飛ぶ</title>
+  <title>TOKYO 3D Drone · 自分のカメラワークで東京を撮る</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -43,9 +43,9 @@
 
 <a class="skip-link" href="#main">本文へスキップ</a>
 <header class="cmd-bar" role="banner">
-  <a class="cmd-bar__brand" href="https://invest-aitech-route-3d.web.app/" data-i18n-attr-aria-label="brand.home">
+  <a class="cmd-bar__brand" href="https://invest-aitech-tokyo-drone.web.app/" data-i18n-attr-aria-label="brand.home">
     <span class="cmd-bar__mark" aria-hidden="true"></span>
-    <span class="cmd-bar__name">plateau-route-3d</span>
+    <span class="cmd-bar__name">tokyo-3d-drone</span>
   </a>
   <nav class="cmd-bar__nav" role="navigation" aria-label="メインナビゲーション">
     <a class="cmd-tab" data-tab="overview" data-i18n="nav.overview">概要</a>
@@ -81,8 +81,8 @@
         launch:   function() { return !isFirebase && path.indexOf('/viewer') === 0; },
         board:    function() { return !isFirebase && path === '/board'; }
       };
-      var FB = 'https://invest-aitech-route-3d.web.app';
-      var CR = 'https://plateau-route-3d-tcus2zi5tq-an.a.run.app';
+      var FB = 'https://invest-aitech-tokyo-drone.web.app';
+      var CR = 'https://tokyo-3d-drone-tcus2zi5tq-an.a.run.app';
       var linkMap = {
         overview: FB + '/',
         features: FB + '/#features',
@@ -198,12 +198,12 @@
         <span class="kicker-text" data-i18n="hero.kicker">PLATEAU · 3D TILES · DRONE CAMERA</span>
       </div>
       <h1 class="hero-title">
-        <span class="title-line" data-i18n="hero.titleLine1">A 点から B 点まで、</span>
-        <span class="title-line title-accent" data-i18n="hero.titleLine2">ドローンで&nbsp;飛ぶ。</span>
+        <span class="title-line" data-i18n="hero.titleLine1">自分のカメラワークで、</span>
+        <span class="title-line title-accent" data-i18n="hero.titleLine2">東京を撮る。</span>
       </h1>
       <p class="hero-lead" data-i18n-html="hero.lead">
-        国土交通省 PLATEAU の 3D 都市モデルの上を、自動ドローン視点でフライスルー。<br>
-        2 点を選ぶだけで経路沿いのビルをすり抜けて飛び、<strong>Stop 後はマウスで街を自由に探索</strong>できる。
+        多点 + 高さ + ドローン視点。PLATEAU 3D 都市モデルの上で、<strong>自由なシネマティック映像を設計</strong>できる。<br>
+        最大 50 点を結び、各点で高度・俯角・滑らかさを詰めて、自分だけのフライト動線を組み立てる。
       </p>
 
       <!-- Animated A→B route visualization -->
@@ -279,42 +279,46 @@
       <div class="container">
         <div class="sec-head">
           <span class="sec-num" data-i18n="section01.num">01</span>
-          <h2 data-i18n="section01.title">3 ステップでフライスルー</h2>
-          <p class="sec-sub" data-i18n="section01.sub">迷う余地がないほどシンプルな操作フロー。</p>
+          <h2 data-i18n="section01.title">3 ステップで構図を作る</h2>
+          <p class="sec-sub" data-i18n="section01.sub">地点を置いて、カメラを設定して、Play。順を追うだけ。</p>
         </div>
 
         <ol class="steps">
           <li class="step">
             <div class="step-num" data-i18n="section01.step1Num">STEP 01</div>
-            <h3 data-i18n="section01.step1Title">A 点 と B 点 を選ぶ</h3>
-            <p data-i18n="section01.step1Body">地図をクリックして A・B を 2 点指定（直線距離 1.5&nbsp;km 以内）。プリセットのサンプルルート（丸の内、渋谷、表参道ほか）からも選べます。</p>
+            <h3 data-i18n="section01.step1Title">地点を置く</h3>
+            <p data-i18n="section01.step1Body">地図クリック or 場所検索で経由地を <strong>5〜50 点</strong>配置。AB ルートの制約はなく、道路に沿わない自由な飛行ラインを描ける。</p>
             <div class="step-visual" aria-hidden="true">
               <svg viewBox="0 0 180 80" width="100%">
-                <circle cx="30" cy="60" r="6" fill="#22d3ee"/>
-                <circle cx="150" cy="20" r="6" fill="#e879f9"/>
-                <path d="M 30 60 Q 90 20 150 20" fill="none" stroke="rgba(148,163,184,0.3)" stroke-dasharray="3 3" stroke-width="1.5"/>
-                <text x="30" y="78" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#22d3ee" font-weight="700">A</text>
-                <text x="150" y="12" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#e879f9" font-weight="700">B</text>
+                <defs><linearGradient id="s1g"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+                <path d="M 20 60 Q 50 20 80 50 T 130 30 T 170 50" fill="none" stroke="url(#s1g)" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.6"/>
+                <circle cx="20" cy="60" r="4" fill="#22d3ee"/>
+                <circle cx="65" cy="32" r="4" fill="#22d3ee"/>
+                <circle cx="100" cy="42" r="4" fill="#a78bfa"/>
+                <circle cx="135" cy="28" r="4" fill="#e879f9"/>
+                <circle cx="170" cy="50" r="4" fill="#e879f9"/>
               </svg>
             </div>
           </li>
           <li class="step">
             <div class="step-num" data-i18n="section01.step2Num">STEP 02</div>
-            <h3 data-i18n="section01.step2Title">ルート取得</h3>
-            <p data-i18n="section01.step2Body">Google Routes API が実際に走れる・歩ける経路を返し、その周辺の 3D タイルをバックエンドが切り出します。driving / walking 切替可能。</p>
+            <h3 data-i18n="section01.step2Title">高度 + カメラを設定</h3>
+            <p data-i18n="section01.step2Body">各点の高度 (altM)、俯角 (pitchDeg)、進行方向相対角 (headingRelDeg)、ホバー秒、コーナー半径を編集。区間ごとに巡航速度も指定可能。</p>
             <div class="step-visual" aria-hidden="true">
               <svg viewBox="0 0 180 80" width="100%">
-                <path d="M 20 60 L 50 55 L 70 30 L 100 35 L 130 20 L 160 25" fill="none" stroke="url(#s2g)" stroke-width="2.5" stroke-linecap="round"/>
-                <defs><linearGradient id="s2g"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
-                <circle cx="20" cy="60" r="4" fill="#22d3ee"/>
-                <circle cx="160" cy="25" r="4" fill="#e879f9"/>
+                <line x1="0" y1="60" x2="180" y2="60" stroke="rgba(148,163,184,0.3)" stroke-width="1"/>
+                <g fill="#22d3ee"><circle cx="20" cy="48" r="3"/><circle cx="60" cy="22" r="3"/><circle cx="100" cy="36" r="3"/><circle cx="140" cy="18" r="3"/><circle cx="170" cy="40" r="3"/></g>
+                <path d="M 20 48 L 60 22 L 100 36 L 140 18 L 170 40" stroke="#22d3ee" stroke-width="1.5" fill="none"/>
+                <line x1="20" y1="48" x2="20" y2="60" stroke="rgba(34,211,238,0.4)" stroke-dasharray="2 2"/>
+                <line x1="60" y1="22" x2="60" y2="60" stroke="rgba(34,211,238,0.4)" stroke-dasharray="2 2"/>
+                <line x1="140" y1="18" x2="140" y2="60" stroke="rgba(34,211,238,0.4)" stroke-dasharray="2 2"/>
               </svg>
             </div>
           </li>
           <li class="step">
             <div class="step-num" data-i18n="section01.step3Num">STEP 03</div>
-            <h3 data-i18n="section01.step3Title">Play で自動飛行 → Stop で自由探索</h3>
-            <p data-i18n-html="section01.step3Body">A 点上空 3 秒待機 → 離陸 → 80&nbsp;km/h でルート追従 → 着地。polyline の屈曲を先読み＋指数移動平均で均し、カクつかないドローン視点に仕上げてある。<strong>Stop / 完走後は自動カメラが外れ、マウスでビル 1 軒ずつ自由に見回せる</strong>（下の <a href="#freelook">FREE LOOK</a> 参照）。</p>
+            <h3 data-i18n="section01.step3Title">Play で飛行</h3>
+            <p data-i18n-html="section01.step3Body">ドローン視点カメラが指定した点を滑らかに補間移動。τ 平滑化と先読み距離で手触りを詰めて、<strong>Stop 後はマウスで街を自由に見回せる</strong>（下の <a href="#freelook">FREE LOOK</a> 参照）。</p>
             <div class="step-visual" aria-hidden="true">
               <svg viewBox="0 0 180 80" width="100%">
                 <rect x="30" y="45" width="10" height="25" fill="rgba(148,163,184,0.25)"/>
@@ -336,31 +340,31 @@
       <div class="container">
         <div class="sec-head">
           <span class="sec-num" data-i18n="section02.num">02</span>
-          <h2 data-i18n="section02.title">「迷わず飛べる」を設計した</h2>
-          <p class="sec-sub" data-i18n="section02.sub">設定地獄にハマらないよう、仕様は大胆に固定した。</p>
+          <h2 data-i18n="section02.title">好きなカメラワークが作れる</h2>
+          <p class="sec-sub" data-i18n="section02.sub">AB ルート検索ではなく、ユーザーが構図を自由設計する。多点 + 各点高度 + 区間速度 + AI プロンプト。</p>
         </div>
 
         <div class="feat-grid">
           <article class="feat">
             <div class="feat-ico" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="19" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="5" r="2"/><path d="M6.5 17.5l4-4"/><path d="M13.5 10.5l4-4"/></svg>
             </div>
-            <h3 data-i18n="section02.feat1Title">速度は 80&nbsp;km/h 固定</h3>
-            <p data-i18n="section02.feat1Body">距離ごとに時間が変わるので、長いルートは長く、短いルートはすぐ終わる。毎回スピード調整する必要なし。</p>
+            <h3 data-i18n="section02.feat1Title">最大 50 点の多点パス</h3>
+            <p data-i18n="section02.feat1Body">道路に縛られない自由飛行。ビルの間を抜ける動線も、上空を一周する周遊コースも、点を置いた順に組める。</p>
           </article>
           <article class="feat">
             <div class="feat-ico" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><polyline points="14 7 21 7 21 14"/></svg>
             </div>
-            <h3 data-i18n="section02.feat2Title">カメラワークも自動</h3>
-            <p data-i18n="section02.feat2Body">離陸 3 秒 → ルート追従 → 着地 3 秒。毎フレーム setView で上書き、heading は 30&nbsp;m 先読み × τ=0.4s の EMA で細かな屈曲を均す。</p>
+            <h3 data-i18n="section02.feat2Title">各点で高度可変</h3>
+            <p data-i18n="section02.feat2Body">ある点では地上 5m、次の点では 80m。高度・俯角・進行方向角を点ごとに設定して、上下にうねるシネマティック動線も思いのまま。</p>
           </article>
           <article class="feat">
             <div class="feat-ico" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4z"/><path d="M14 4h6v6h-6z"/><path d="M4 14h6v6H4z"/><path d="M14 14h6v6h-6z"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
             </div>
-            <h3 data-i18n="section02.feat3Title">東京の 5 ルート、即試せる</h3>
-            <p data-i18n="section02.feat3Body">丸の内 / 渋谷 / 新宿 / スカイツリー / 表参道。迷ったらプリセットから。街並みのコントラストが一目で違う。</p>
+            <h3 data-i18n="section02.feat3Title">AI プロンプトで構図生成</h3>
+            <p data-i18n="section02.feat3Body">「スカイツリーから皇居まで、低空 → 上昇 → 旋回」のような自然言語から、構図 JSON を自動生成。ゼロから点を置かなくても始められる。</p>
           </article>
         </div>
       </div>
@@ -371,8 +375,8 @@
       <div class="container">
         <div class="sec-head">
           <span class="sec-num" data-i18n="section02_5.num">02·5</span>
-          <h2 data-i18n="section02_5.title">もっと自由に飛ばすために</h2>
-          <p class="sec-sub" data-i18n="section02_5.sub">場所検索・経由地・プリセット共有・コミュニティ掲示板。ルート 1 本では収まらない遊び方を、地味にぜんぶ入れた。</p>
+          <h2 data-i18n="section02_5.title">もっと自由なカメラワークへ</h2>
+          <p class="sec-sub" data-i18n="section02_5.sub">場所検索・多点 + 高度・URL 共有・コミュニティ掲示板。AB ルート 1 本では収まらない遊び方を、ぜんぶ入れた。</p>
         </div>
 
         <div class="feat-grid feat-grid-mission">
@@ -388,15 +392,15 @@
                 <path d="M21 21l-4.3-4.3"/>
               </svg>
             </div>
-            <h3 data-i18n="section02_5.feat1Title">場所名で A・B を指定</h3>
-            <p data-i18n="section02_5.feat1Body">東京 23 区限定の場所検索 (Google Places API)。施設名・住所・駅名で候補が出て、クリックひとつで A / B / 経由地に確定。</p>
+            <h3 data-i18n="section02_5.feat1Title">場所名で点を素早く追加</h3>
+            <p data-i18n="section02_5.feat1Body">東京 23 区限定の場所検索 (Google Places API)。施設名・住所・駅名で候補が出て、クリックひとつでカメラパスに点を追加できる。</p>
           </article>
 
           <!-- 02 · WAYPOINTS -->
           <article class="feat feat--mission">
             <header class="feat-mission-head">
               <span class="feat-led feat-led-b" aria-hidden="true"></span>
-              <span class="feat-tag feat-tag-b" data-i18n="section02_5.feat2Tag">WAYPOINTS</span>
+              <span class="feat-tag feat-tag-b" data-i18n="section02_5.feat2Tag">MULTI-POINT + ALTITUDE</span>
             </header>
             <div class="feat-ico feat-ico-b" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -407,8 +411,8 @@
                 <path d="M13.5 10.5l4-4"/>
               </svg>
             </div>
-            <h3 data-i18n="section02_5.feat2Title">経由地で寄り道する</h3>
-            <p data-i18n="section02_5.feat2Body">A→B が決まった後の地図クリックで経由地（C1〜C8）を最大 8 点追加。並び替え・削除に対応し、ルートはその場で書き直される。</p>
+            <h3 data-i18n="section02_5.feat2Title">多点 + 高度で自由設計</h3>
+            <p data-i18n="section02_5.feat2Body">最大 50 点までの多点パスに、各点ごとの高度・俯角・進行方向角を設定。AB ルート検索の制約を超えて、自分だけの動線を組み立てる。</p>
           </article>
 
           <!-- 03 · PRESET SHARE -->
@@ -423,8 +427,8 @@
                 <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/>
               </svg>
             </div>
-            <h3 data-i18n="section02_5.feat3Title">URL 1 本で再現できる</h3>
-            <p data-i18n="section02_5.feat3Body">A/B + 経由地 + driving/walking + LOD + カメラ 4 ダイヤルを 1 本の URL に詰めて共有。受け取った側が開いた瞬間、まったく同じ絵作りで Play できる。</p>
+            <h3 data-i18n="section02_5.feat3Title">URL 1 本で構図を共有</h3>
+            <p data-i18n="section02_5.feat3Body">全ての点 + 各点パラメータ + グローバル設定を 1 本の URL に詰めて共有。受け取った側が開いた瞬間、まったく同じ構図で Play できる。.json 書き出し / 読み込みにも対応。</p>
           </article>
 
           <!-- 04 · COMMUNITY -->
@@ -441,8 +445,8 @@
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>
             </div>
-            <h3 data-i18n="section02_5.feat4Title">投稿された絵作りで遊ぶ</h3>
-            <p data-i18n="section02_5.feat4Body">下の COMMUNITY セクションに、ユーザーが共有したプリセットが並ぶ。匿名 OK・投稿に登録不要。気になったカードを開けば、そのままこのアプリに飛んで再生される。</p>
+            <h3 data-i18n="section02_5.feat4Title">投稿された構図で遊ぶ</h3>
+            <p data-i18n="section02_5.feat4Body">下の COMMUNITY セクションに、ユーザーが共有した構図が並ぶ。匿名 OK・投稿に登録不要。気になったカードを開けば、そのままこのアプリに飛んで再生される。</p>
           </article>
         </div>
       </div>
@@ -453,8 +457,8 @@
       <div class="container">
         <div class="sec-head">
           <span class="sec-num" data-i18n="section03.num">03</span>
-          <h2 data-i18n="section03.title">4 つのダイヤルで、手触りを詰める</h2>
-          <p class="sec-sub" data-i18n="section03.sub">プリセットで即フライトするが、飛行中でも好みに合わせて 4 つのパラメータを調整できる。「なんか機械的」「カーブで振られる」と感じたら、値を 1 つだけ動かして試せる設計。</p>
+          <h2 data-i18n="section03.title">シネマティックな手触りを詰める</h2>
+          <p class="sec-sub" data-i18n="section03.sub">点ごとの高度・俯角に加えて、グローバルな手触りを 4 つのダイヤルで調整。「機械的すぎる」「コーナーで振られる」と感じたら、値を 1 つだけ動かしてみる。</p>
         </div>
 
         <div class="hud-panel" role="group" aria-label="カメラ・テレメトリ・パネル">
@@ -567,7 +571,7 @@
         <div class="sec-head">
           <span class="sec-num" data-i18n="section04.num">04</span>
           <h2 data-i18n="section04.title">Stop したら、街を自分の目で歩く</h2>
-          <p class="sec-sub" data-i18n-html="section04.sub">自動飛行が終わるか <strong>Stop</strong> を押した瞬間から、カメラはマウスに戻る。ビュー固定が解除されるので、ルートもビルも好きな角度で作り込める。</p>
+          <p class="sec-sub" data-i18n-html="section04.sub">自動飛行が終わるか <strong>Stop</strong> を押した瞬間から、カメラはマウスに戻る。ビュー固定が解除されるので、パスもビルも好きな角度で作り込める。</p>
         </div>
 
         <div class="hud-panel" role="group" aria-label="マウス操作パネル">
@@ -834,7 +838,7 @@
         <span aria-hidden="true">·</span>
         <a href="https://invest-aitech.com/" target="_blank" rel="noopener noreferrer" data-i18n="footer.siteLink">invest-aitech.com</a>
         <span aria-hidden="true">·</span>
-        <a href="https://github.com/Invest-AItech/plateau-route-3d" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/Invest-AItech/tokyo-3d-drone" target="_blank" rel="noopener noreferrer">GitHub</a>
       </div>
     </div>
   </footer>

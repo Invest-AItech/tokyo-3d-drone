@@ -13,7 +13,7 @@ import { buildAIPrompt } from '../ai-prompt.js'
 export function mountTopbar(container, { state, actions, subscribe }) {
   container.innerHTML = `
     <div class="topbar">
-      <span class="brand">plateau-route-3d · Creator</span>
+      <span class="brand">tokyo-3d-drone · Composition Editor</span>
       <div class="actions">
         <button data-action="play" data-i18n="creator.play">▶ Play</button>
         <button data-action="stop" data-i18n="creator.stop">⏸ Stop</button>
