@@ -69,6 +69,117 @@ body[data-page="creator"] {
   outline-offset: 2px;
 }
 
+/* === Back to landing link (left of topbar) === */
+.topbar-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.65rem;
+  margin-right: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.8em;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.topbar-back:hover,
+.topbar-back:focus-visible {
+  color: var(--accent-a);
+  border-color: var(--accent-a);
+  background: rgba(232, 121, 249, 0.06);
+}
+.topbar-back:focus-visible {
+  outline: 2px solid var(--accent-a);
+  outline-offset: 2px;
+}
+.topbar-back__icon { font-weight: 700; }
+.topbar-back__label { font-weight: 500; }
+
+/* === Sample picker (compact <select> in topbar) === */
+.sample-picker {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+.sample-picker__visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.sample-picker__select {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  padding: 0.45rem 1.7rem 0.45rem 0.7rem;
+  background: var(--bg-pane);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%2394a3b8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><polyline points='1 1.5 6 6.5 11 1.5'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+  background-size: 10px 6px;
+}
+.sample-picker__select:hover,
+.sample-picker__select:focus-visible {
+  border-color: var(--accent-a);
+  box-shadow: var(--hud-glow);
+  color: var(--accent-a);
+}
+.sample-picker__select:focus-visible {
+  outline: 2px solid var(--accent-a);
+  outline-offset: 2px;
+}
+/* Native option styling on dark theme (limited browser support but harmless) */
+.sample-picker__select option {
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+/* === Viewer-only mode (3D だけ表示) === */
+/* When body[data-viewer-only="true"], the map and edit panes vanish and the
+ * viewer pane fills the central column. Mobile-tabs is also hidden because
+ * the user explicitly chose 3D-only. */
+body[data-page="creator"][data-viewer-only="true"] #creator-main {
+  grid-template-columns: 1fr !important;
+  grid-template-rows: 1fr !important;
+}
+body[data-page="creator"][data-viewer-only="true"] #map-pane,
+body[data-page="creator"][data-viewer-only="true"] #edit-pane {
+  display: none !important;
+}
+body[data-page="creator"][data-viewer-only="true"] #viewer-pane {
+  grid-column: 1 / -1 !important;
+  grid-row: 1 / -1 !important;
+  display: flex;
+}
+body[data-page="creator"][data-viewer-only="true"] .mobile-tabs {
+  display: none !important;
+}
+/* When viewer-only is on, the place-search section is also redundant */
+body[data-page="creator"][data-viewer-only="true"] #place-search-pane {
+  display: none !important;
+}
+/* Toggle button when active */
+.topbar button[data-action="toggle-viewer-only"][aria-pressed="true"] {
+  color: var(--accent-a);
+  border-color: var(--accent-a);
+  background: rgba(232, 121, 249, 0.08);
+}
+
 /* Main 3-pane layout */
 #creator-main {
   flex: 1 1 auto;

@@ -10,14 +10,43 @@ import { saveAndShare, copyToClipboard, showToast, getRecaptchaToken } from '../
 import { downloadJson, readJsonFile, exportComposition, importComposition } from '../io.js'
 import { buildAIPrompt } from '../ai-prompt.js'
 
+// Bundled sample presets (viewer/samples/*.json). i18n keys live in
+// locales/{ja,en}.json under creator.samples_NN. Order matches file ID.
+const SAMPLE_PRESETS = [
+  { id: '01-skytree',       i18n: 'creator.samples_01', label: '01 · スカイツリー' },
+  { id: '02-tokyo-tower',   i18n: 'creator.samples_02', label: '02 · 東京タワー' },
+  { id: '03-shinjuku',      i18n: 'creator.samples_03', label: '03 · 新宿西口' },
+  { id: '04-tokyo-station', i18n: 'creator.samples_04', label: '04 · 東京駅' },
+  { id: '05-shibuya',       i18n: 'creator.samples_05', label: '05 · 渋谷駅前' },
+]
+
+const FIREBASE_LANDING = 'https://invest-aitech-tokyo-drone.web.app/'
+
 export function mountTopbar(container, { state, actions, subscribe }) {
+  const sampleOptions = SAMPLE_PRESETS.map(p =>
+    `<option value="${p.id}" data-i18n="${p.i18n}">${p.label}</option>`
+  ).join('')
+
   container.innerHTML = `
     <div class="topbar">
+      <a class="topbar-back" href="${FIREBASE_LANDING}"
+         title="トップページに戻る" data-i18n-attr-title="creator.backToLandingHint"
+         aria-label="トップに戻る" data-i18n-attr-aria-label="creator.backToLanding">
+        <span class="topbar-back__icon" aria-hidden="true">←</span>
+        <span class="topbar-back__label" data-i18n="creator.backToLanding">トップ</span>
+      </a>
       <span class="brand">tokyo-3d-drone · Composition Editor</span>
       <div class="actions">
         <button data-action="play" data-i18n="creator.play">▶ Play</button>
         <button data-action="stop" data-i18n="creator.stop">⏸ Stop</button>
         <button data-action="reset" data-i18n="creator.reset" title="点をすべてクリア (global 設定は維持)">⟲ Reset</button>
+        <label class="sample-picker" title="プリセット構図を選択" data-i18n-attr-title="creator.loadSampleHint">
+          <span class="sample-picker__visually-hidden" data-i18n="creator.loadSample">サンプルを読み込む</span>
+          <select data-action="load-sample" class="sample-picker__select" aria-label="サンプル">
+            <option value="" data-i18n="creator.samplePlaceholder">📂 サンプル…</option>
+            ${sampleOptions}
+          </select>
+        </label>
         <button data-action="preview-tiles" data-i18n="creator.previewTiles">🏙️ Preview tiles</button>
         <button data-action="save" data-i18n="creator.save">Save &amp; Share</button>
         <button data-action="export" data-i18n="creator.export">Export JSON</button>
@@ -25,6 +54,8 @@ export function mountTopbar(container, { state, actions, subscribe }) {
         <button data-action="ai-prompt" data-i18n="creator.aiPrompt">🤖 AI Prompt</button>
         <button data-action="toggle-polyline" class="toolbar-btn" aria-pressed="${state.showPolyline}"
                 title="経路の表示/非表示" data-i18n-title="creator.togglePolylineHint"><span data-i18n="creator.togglePolyline">⛓️ 経路</span></button>
+        <button data-action="toggle-viewer-only" class="toolbar-btn" aria-pressed="${state.viewerOnly}"
+                title="3 画面表示／3D だけ表示の切替" data-i18n-attr-title="creator.toggleViewerOnlyHint"><span data-i18n="creator.toggleViewerOnly">🎬 3D のみ</span></button>
         <input type="file" data-action="import-file" accept="application/json,.json" hidden>
       </div>
     </div>
@@ -101,9 +132,37 @@ export function mountTopbar(container, { state, actions, subscribe }) {
   polylineBtn.addEventListener('click', () => {
     actions.togglePolyline()
   })
+
+  // 3D のみ表示トグル
+  const viewerOnlyBtn = container.querySelector('[data-action="toggle-viewer-only"]')
+  viewerOnlyBtn.addEventListener('click', () => {
+    actions.toggleViewerOnly()
+  })
+
+  // サンプル読込ドロップダウン
+  const sampleSelect = container.querySelector('[data-action="load-sample"]')
+  sampleSelect.addEventListener('change', async (e) => {
+    const id = e.target.value
+    if (!id) return
+    try {
+      const res = await fetch(`/static/viewer/samples/${id}.json`, { cache: 'no-store' })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const comp = await res.json()
+      actions.loadComposition(comp)
+      const label = sampleSelect.options[sampleSelect.selectedIndex]?.textContent ?? id
+      showToast(`サンプル: ${label.trim()}`)
+    } catch (err) {
+      showToast(`サンプル読込に失敗: ${err.message}`)
+    } finally {
+      // プレースホルダ option に戻す（再選択を許可）
+      sampleSelect.value = ''
+    }
+  })
+
   // state 変化に応じて aria-pressed を更新（外部からの変更にも追従）
   subscribe(s => {
     polylineBtn.setAttribute('aria-pressed', String(s.showPolyline))
+    viewerOnlyBtn.setAttribute('aria-pressed', String(s.viewerOnly))
   })
 }
 

@@ -40,9 +40,9 @@ def board() -> HTMLResponse:
 
 
 @router.get("/start", include_in_schema=False)
-def start() -> HTMLResponse:
-    """インタラクティブ・ランディング (CLAUDE.md アプリ作成ルール準拠)。"""
-    return _render_landing("start")
+def start():
+    """旧 interactive landing。Firebase へ統合済みのため、Firebase ランディングへ 301 リダイレクト。"""
+    return RedirectResponse(FIREBASE_LANDING, status_code=301)
 
 
 @router.get("/api/config.js", include_in_schema=False)

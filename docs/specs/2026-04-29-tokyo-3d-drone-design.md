@@ -188,11 +188,11 @@ CLAUDE.md「アプリ作成ルール」に厳密準拠。
     │       │       ├── topbar.js
     │       │       └── viewer-pane.js
     │       ├── samples/
-    │       │   ├── 01-tokyo-station-to-tower.json
-    │       │   ├── 02-marunouchi-loop.json
-    │       │   ├── 03-shibuya-flythrough.json
-    │       │   ├── 04-skytree-orbit.json
-    │       │   └── 05-shinjuku-corridor.json
+    │       │   ├── 01-skytree.json
+    │       │   ├── 02-tokyo-tower.json
+    │       │   ├── 03-shinjuku.json
+    │       │   ├── 04-tokyo-station.json
+    │       │   └── 05-shibuya.json
     │       ├── locales/
     │       │   ├── ja.json
     │       │   └── en.json

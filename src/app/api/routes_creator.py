@@ -44,7 +44,7 @@ def viewer_spec() -> HTMLResponse:
 <h1>composition フォーマット仕様 v1</h1>
 <div class="actions">
   <button id="copy-spec">📋 Spec を Markdown でコピー</button>
-  <a href="/static/viewer/samples/01-tokyo-station-to-tower.json" download>📥 空テンプレ JSON (= サンプル 01)</a>
+  <a href="/static/viewer/samples/01-skytree.json" download>📥 空テンプレ JSON (= サンプル 01)</a>
   <a href="/viewer/">← Drone Viewer に戻る</a>
 </div>
 <h2>サンプル composition</h2>

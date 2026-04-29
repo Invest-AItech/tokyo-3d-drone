@@ -1,0 +1,403 @@
+{
+  "v": 1,
+  "name": "⑦ 渋谷駅前ビル群｜南から接近→駅ビル群旋回→センター街方向へ大引き",
+  "author": "Tokyo Drone Presets",
+  "global": {
+    "tau": 0.8,
+    "lookaheadM": 30,
+    "bufferM": 250,
+    "lod": "lod2",
+    "cornerRadiusM": 50
+  },
+  "points": [
+    {
+      "id": "P01",
+      "lon": 139.7027,
+      "lat": 35.656438,
+      "altM": 25,
+      "headingRelDeg": 0.0,
+      "pitchDeg": 27.5
+    },
+    {
+      "id": "P02",
+      "lon": 139.7027,
+      "lat": 35.656534,
+      "altM": 50,
+      "headingRelDeg": 0.0,
+      "pitchDeg": 23.6
+    },
+    {
+      "id": "P03",
+      "lon": 139.7027,
+      "lat": 35.656631,
+      "altM": 75,
+      "headingRelDeg": 0.0,
+      "pitchDeg": 18.9
+    },
+    {
+      "id": "P04",
+      "lon": 139.7027,
+      "lat": 35.656727,
+      "altM": 100,
+      "headingRelDeg": 0.0,
+      "pitchDeg": 13.5
+    },
+    {
+      "id": "P05",
+      "lon": 139.7027,
+      "lat": 35.656824,
+      "altM": 125,
+      "headingRelDeg": 0.0,
+      "pitchDeg": 7.2
+    },
+    {
+      "id": "P06",
+      "lon": 139.7027,
+      "lat": 35.65692,
+      "altM": 150,
+      "headingRelDeg": 0.0,
+      "pitchDeg": 0.0
+    },
+    {
+      "id": "P07",
+      "lon": 139.7027,
+      "lat": 35.657017,
+      "altM": 175,
+      "headingRelDeg": 0.0,
+      "pitchDeg": -8.1
+    },
+    {
+      "id": "P08",
+      "lon": 139.7027,
+      "lat": 35.657114,
+      "altM": 200,
+      "headingRelDeg": 0.0,
+      "pitchDeg": -16.9
+    },
+    {
+      "id": "P09",
+      "lon": 139.7027,
+      "lat": 35.657339,
+      "altM": 220,
+      "headingRelDeg": -41.5,
+      "pitchDeg": -26.6
+    },
+    {
+      "id": "P10",
+      "lon": 139.703071,
+      "lat": 35.657375,
+      "altM": 232,
+      "headingRelDeg": -90.0,
+      "pitchDeg": -30.5
+    },
+    {
+      "id": "P11",
+      "lon": 139.703421,
+      "lat": 35.657483,
+      "altM": 245,
+      "headingRelDeg": -90.0,
+      "pitchDeg": -34.1
+    },
+    {
+      "id": "P12",
+      "lon": 139.703729,
+      "lat": 35.657656,
+      "altM": 257,
+      "headingRelDeg": -90.0,
+      "pitchDeg": -37.4
+    },
+    {
+      "id": "P13",
+      "lon": 139.703978,
+      "lat": 35.657884,
+      "altM": 269,
+      "headingRelDeg": -90.0,
+      "pitchDeg": -40.4
+    },
+    {
+      "id": "P14",
+      "lon": 139.704151,
+      "lat": 35.658153,
+      "altM": 282,
+      "headingRelDeg": -90.0,
+      "pitchDeg": -43.2
+    },
+    {
+      "id": "P15",
+      "lon": 139.704241,
+      "lat": 35.658448,
+      "altM": 294,
+      "headingRelDeg": -90.0,
+      "pitchDeg": -45.8
+    },
+    {
+      "id": "P16",
+      "lon": 139.704241,
+      "lat": 35.658752,
+      "altM": 306,
+      "headingRelDeg": -90.0,
+      "pitchDeg": -48.1,
+      "hoverS": 0.5
+    },
+    {
+      "id": "P17",
+      "lon": 139.704151,
+      "lat": 35.659047,
+      "altM": 318,
+      "headingRelDeg": -90.0,
+      "pitchDeg": -50.3
+    },
+    {
+      "id": "P18",
+      "lon": 139.703978,
+      "lat": 35.659316,
+      "altM": 331,
+      "headingRelDeg": -90.0,
+      "pitchDeg": -52.2
+    },
+    {
+      "id": "P19",
+      "lon": 139.703729,
+      "lat": 35.659544,
+      "altM": 343,
+      "headingRelDeg": -90.0,
+      "pitchDeg": -54.1
+    },
+    {
+      "id": "P20",
+      "lon": 139.703421,
+      "lat": 35.659717,
+      "altM": 355,
+      "headingRelDeg": -90.0,
+      "pitchDeg": -55.7
+    },
+    {
+      "id": "P21",
+      "lon": 139.703071,
+      "lat": 35.659825,
+      "altM": 368,
+      "headingRelDeg": -90.0,
+      "pitchDeg": -57.3
+    },
+    {
+      "id": "P22",
+      "lon": 139.7027,
+      "lat": 35.659861,
+      "altM": 380,
+      "headingRelDeg": -138.5,
+      "pitchDeg": -58.7,
+      "hoverS": 0.5
+    },
+    {
+      "id": "P23",
+      "lon": 139.7027,
+      "lat": 35.660154,
+      "altM": 385,
+      "headingRelDeg": -180.0,
+      "pitchDeg": -53.7
+    },
+    {
+      "id": "P24",
+      "lon": 139.7027,
+      "lat": 35.660447,
+      "altM": 390,
+      "headingRelDeg": -180.0,
+      "pitchDeg": -49.5
+    },
+    {
+      "id": "P25",
+      "lon": 139.7027,
+      "lat": 35.66074,
+      "altM": 395,
+      "headingRelDeg": -180.0,
+      "pitchDeg": -45.9
+    },
+    {
+      "id": "P26",
+      "lon": 139.7027,
+      "lat": 35.661032,
+      "altM": 400,
+      "headingRelDeg": -180.0,
+      "pitchDeg": -42.8
+    },
+    {
+      "id": "P27",
+      "lon": 139.7027,
+      "lat": 35.661325,
+      "altM": 405,
+      "headingRelDeg": -180.0,
+      "pitchDeg": -40.1
+    },
+    {
+      "id": "P28",
+      "lon": 139.7027,
+      "lat": 35.661618,
+      "altM": 410,
+      "headingRelDeg": -180.0,
+      "pitchDeg": -37.8
+    },
+    {
+      "id": "P29",
+      "lon": 139.7027,
+      "lat": 35.661911,
+      "altM": 415,
+      "headingRelDeg": -180.0,
+      "pitchDeg": -35.8
+    },
+    {
+      "id": "P30",
+      "lon": 139.7027,
+      "lat": 35.662204,
+      "altM": 420,
+      "headingRelDeg": -180.0,
+      "pitchDeg": -34.0
+    }
+  ],
+  "segments": [
+    {
+      "from": "P01",
+      "to": "P02",
+      "durationS": 0.68
+    },
+    {
+      "from": "P02",
+      "to": "P03",
+      "durationS": 0.68
+    },
+    {
+      "from": "P03",
+      "to": "P04",
+      "durationS": 0.68
+    },
+    {
+      "from": "P04",
+      "to": "P05",
+      "durationS": 0.68
+    },
+    {
+      "from": "P05",
+      "to": "P06",
+      "durationS": 0.68
+    },
+    {
+      "from": "P06",
+      "to": "P07",
+      "durationS": 0.68
+    },
+    {
+      "from": "P07",
+      "to": "P08",
+      "durationS": 0.68
+    },
+    {
+      "from": "P08",
+      "to": "P09",
+      "durationS": 0.8
+    },
+    {
+      "from": "P09",
+      "to": "P10",
+      "durationS": 0.898
+    },
+    {
+      "from": "P10",
+      "to": "P11",
+      "durationS": 0.898
+    },
+    {
+      "from": "P11",
+      "to": "P12",
+      "durationS": 0.898
+    },
+    {
+      "from": "P12",
+      "to": "P13",
+      "durationS": 0.898
+    },
+    {
+      "from": "P13",
+      "to": "P14",
+      "durationS": 0.898
+    },
+    {
+      "from": "P14",
+      "to": "P15",
+      "durationS": 0.898
+    },
+    {
+      "from": "P15",
+      "to": "P16",
+      "durationS": 0.898
+    },
+    {
+      "from": "P16",
+      "to": "P17",
+      "durationS": 0.898
+    },
+    {
+      "from": "P17",
+      "to": "P18",
+      "durationS": 0.898
+    },
+    {
+      "from": "P18",
+      "to": "P19",
+      "durationS": 0.898
+    },
+    {
+      "from": "P19",
+      "to": "P20",
+      "durationS": 0.898
+    },
+    {
+      "from": "P20",
+      "to": "P21",
+      "durationS": 0.898
+    },
+    {
+      "from": "P21",
+      "to": "P22",
+      "durationS": 0.898
+    },
+    {
+      "from": "P22",
+      "to": "P23",
+      "durationS": 0.822
+    },
+    {
+      "from": "P23",
+      "to": "P24",
+      "durationS": 0.822
+    },
+    {
+      "from": "P24",
+      "to": "P25",
+      "durationS": 0.822
+    },
+    {
+      "from": "P25",
+      "to": "P26",
+      "durationS": 0.822
+    },
+    {
+      "from": "P26",
+      "to": "P27",
+      "durationS": 0.822
+    },
+    {
+      "from": "P27",
+      "to": "P28",
+      "durationS": 0.822
+    },
+    {
+      "from": "P28",
+      "to": "P29",
+      "durationS": 0.822
+    },
+    {
+      "from": "P29",
+      "to": "P30",
+      "durationS": 0.822
+    }
+  ]
+}

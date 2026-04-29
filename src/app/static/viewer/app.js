@@ -23,6 +23,18 @@ function _writeShowPolyline(v) {
     localStorage.setItem('drone_show_polyline', String(v))
   } catch { /* ignore */ }
 }
+function _readViewerOnly() {
+  try {
+    return localStorage.getItem('drone_viewer_only') === 'true'
+  } catch {
+    return false
+  }
+}
+function _writeViewerOnly(v) {
+  try {
+    localStorage.setItem('drone_viewer_only', String(v))
+  } catch { /* ignore */ }
+}
 
 const state = {
   composition: emptyComposition(),
@@ -31,6 +43,12 @@ const state = {
   playStartedFromPointId: null,
   previewTilesTrigger: 0,
   showPolyline: _readShowPolyline(),
+  viewerOnly: _readViewerOnly(),
+}
+
+// Initial body data attribute for viewerOnly (CSS toggles layout based on it)
+if (state.viewerOnly) {
+  document.body.dataset.viewerOnly = 'true'
 }
 
 const subscribers = new Set()
@@ -42,6 +60,7 @@ function setState(updater) {
   if ('playStartedFromPointId' in updater) state.playStartedFromPointId = updater.playStartedFromPointId
   if ('previewTilesTrigger' in updater) state.previewTilesTrigger = updater.previewTilesTrigger
   if ('showPolyline' in updater) state.showPolyline = updater.showPolyline
+  if ('viewerOnly' in updater) state.viewerOnly = updater.viewerOnly
   for (const s of subscribers) s(state)
 }
 
@@ -92,6 +111,16 @@ const actions = {
     const next = !state.showPolyline
     _writeShowPolyline(next)
     setState({ showPolyline: next })
+  },
+  toggleViewerOnly: () => {
+    const next = !state.viewerOnly
+    _writeViewerOnly(next)
+    document.body.dataset.viewerOnly = String(next)
+    setState({ viewerOnly: next })
+    // ペイン切替後に Cesium / Leaflet を再描画させる
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'))
+    }, 50)
   },
 }
 

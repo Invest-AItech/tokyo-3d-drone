@@ -35,11 +35,11 @@ def test_creator_spec_lists_sample_compositions():
     assert r.status_code == 200
     # 5 サンプルが全て参照されている
     for stem in [
-        "01-tokyo-station-to-tower",
-        "02-marunouchi-loop",
-        "03-shibuya-flythrough",
-        "04-skytree-orbit",
-        "05-shinjuku-corridor",
+        "01-skytree",
+        "02-tokyo-tower",
+        "03-shinjuku",
+        "04-tokyo-station",
+        "05-shibuya",
     ]:
         assert f"samples/{stem}.json" in r.text
 
