@@ -1,0 +1,14 @@
+body[data-locale="en"] {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+body[data-locale="en"] h1,
+body[data-locale="en"] h2,
+body[data-locale="en"] h3 {
+  letter-spacing: -0.01em;
+}
+
+html {
+  scroll-padding-top: 64px;
+}

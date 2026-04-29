@@ -1,0 +1,112 @@
+/* 相互リンクセクション - plateau-route-3d-v2 */
+.section--cross-link {
+  padding: 80px 24px;
+  position: relative;
+}
+
+.section--cross-link .accent-blue-purple {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+.section--cross-link .section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 auto 32px;
+  max-width: 1024px;
+}
+
+.section--cross-link .sec-kicker {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: rgba(59, 130, 246, 0.7);
+  letter-spacing: 0.08em;
+}
+
+.section--cross-link .sec-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(139, 92, 246, 0.6);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 4px;
+}
+
+.cross-link-card {
+  max-width: 1024px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 48px;
+  align-items: center;
+  padding: 48px;
+  background: rgba(7, 10, 15, 0.7);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 48px rgba(59, 130, 246, 0.12);
+}
+
+.cross-link-text h2 {
+  font-size: clamp(24px, 3.5vw, 36px);
+  line-height: 1.4;
+  margin: 0 0 24px;
+  color: #e5e7eb;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+}
+
+.cross-link-text p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #cbd5e1;
+  margin: 0 0 32px;
+}
+
+.cta--cross-link {
+  display: inline-block;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 200ms ease;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+  letter-spacing: 0.02em;
+}
+
+.cta--cross-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5);
+}
+
+.cross-link-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cross-link-visual svg {
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+  filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.4));
+}
+
+@media (max-width: 768px) {
+  .cross-link-card {
+    grid-template-columns: 1fr;
+    padding: 32px 24px;
+    gap: 24px;
+  }
+  .cta--cross-link {
+    width: 100%;
+    text-align: center;
+  }
+}

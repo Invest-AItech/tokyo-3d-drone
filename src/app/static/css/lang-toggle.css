@@ -1,0 +1,50 @@
+/* 言語切替ピル - plateau-route-3d-v2（HUD / シアン+マゼンタ） */
+.lang-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 4px;
+  background: rgba(7, 10, 15, 0.75);
+  border: 1px solid rgba(34, 211, 238, 0.4);
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.lang-toggle__btn {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(34, 211, 238, 0.6);
+  transition: all 200ms ease;
+}
+
+.lang-toggle__btn:hover:not([aria-pressed="true"]) {
+  color: #67e8f9;
+}
+
+.lang-toggle__btn[aria-pressed="true"] {
+  background: linear-gradient(135deg, #e879f9, #e879f9);
+  color: #070a0f;
+  box-shadow: 0 0 12px rgba(232, 121, 249, 0.4);
+}
+
+.lang-toggle__btn:focus-visible {
+  outline: 2px solid #e879f9;
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .lang-toggle { top: 12px; right: 12px; }
+  .lang-toggle__btn { padding: 4px 10px; font-size: 10px; }
+}
