@@ -33,6 +33,15 @@
     </section>
     <aside id="edit-pane" class="pane"></aside>
   </main>
+  <section id="place-search-pane" class="panel-sec place-search-section" aria-label="場所検索">
+    <h3 data-i18n="creator.placeSearch.title">場所検索</h3>
+    <div id="ps-root">
+      <input id="ps-input" type="text" placeholder="例: 東京駅" autocomplete="off"
+             aria-label="場所を検索">
+      <ul id="ps-suggest" role="listbox"></ul>
+      <p id="ps-message" class="ps-message" aria-live="polite"></p>
+    </div>
+  </section>
   <nav id="mobile-tabs" class="mobile-tabs" role="navigation" aria-label="ペイン切替">
     <button data-pane="map" class="mobile-tab" aria-label="マップ表示" aria-current="false" data-i18n="creator.tabMap">🗺️ マップ</button>
     <button data-pane="viewer" class="mobile-tab" aria-label="3D 表示" aria-current="page" data-i18n="creator.tabViewer">🌐 3D</button>

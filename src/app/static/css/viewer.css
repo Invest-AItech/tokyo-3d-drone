@@ -548,3 +548,68 @@ body[data-page="creator-spec"] .actions button {
   line-height: 1.4;
   resize: vertical;
 }
+
+/* ====================================================================
+ * Place Search Section (F.7)
+ * Drone-specific place search UI mounted to #ps-root
+ * ==================================================================== */
+#place-search-pane.place-search-section {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  z-index: 1100;
+  width: min(320px, calc(100vw - 24px));
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(232, 121, 249, 0.25);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+}
+#place-search-pane h3 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+}
+.place-search-section #ps-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(232, 121, 249, 0.3);
+  border-radius: 6px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+}
+.place-search-section #ps-input:focus {
+  outline: none;
+  border-color: #e879f9;
+  box-shadow: 0 0 8px rgba(232, 121, 249, 0.3);
+}
+.place-search-section #ps-suggest {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 6px;
+}
+.place-search-section .suggest-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+  color: #fff;
+}
+.place-search-section .suggest-item:hover {
+  background: rgba(232, 121, 249, 0.12);
+}
+.place-search-section .ps-message {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}

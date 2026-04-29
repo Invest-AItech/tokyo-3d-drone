@@ -323,6 +323,12 @@
     "tabMap": "🗺️ マップ",
     "tabViewer": "🌐 3D",
     "tabEdit": "✏️ 編集",
-    "aiPrompt": "🤖 AI Prompt"
+    "aiPrompt": "🤖 AI Prompt",
+    "placeSearch": {
+      "title": "場所検索",
+      "placeholder": "例: 東京駅",
+      "outOfRange": "東京 23 区の範囲外です",
+      "searchFailed": "検索に失敗しました"
+    }
   }
 }

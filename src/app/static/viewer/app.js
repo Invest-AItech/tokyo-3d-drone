@@ -8,6 +8,7 @@ import { mountMapPane } from './panels/map-pane.js'
 import { mountViewerPane } from './panels/viewer-pane.js'
 import { mountEditPane } from './panels/edit-pane.js'
 import { loadCompositionById } from './loader.js'
+import { mountPlaceSearchDrone } from '/static/js/ui-place-search-drone.js'
 
 const state = {
   composition: emptyComposition(),
@@ -69,6 +70,33 @@ mountTopbar(document.getElementById('topbar'), { state, actions, subscribe })
 mountMapPane(document.getElementById('map-pane'), { state, actions, subscribe })
 mountViewerPane(document.getElementById('viewer-pane'), { state, actions, subscribe })
 mountEditPane(document.getElementById('edit-pane'), { state, actions, subscribe })
+
+// Place search wiring (F.7) — Drone-specific, AbSelector-free
+const psRoot = document.getElementById('ps-root')
+if (psRoot) {
+  const placesApi = {
+    async autocomplete(input) {
+      const r = await fetch(`/api/v1/places/autocomplete?input=${encodeURIComponent(input)}`)
+      return r.json()
+    },
+    async getDetails(placeId) {
+      const r = await fetch(`/api/v1/places/details?place_id=${encodeURIComponent(placeId)}`)
+      return r.json()
+    },
+  }
+  mountPlaceSearchDrone({
+    rootEl: psRoot,
+    api: placesApi,
+    onPick: ({ lat, lon, name }) => {
+      // composition state へ点を追加（既存の addPointAt を流用）
+      actions.addPointAt({ lon, lat })
+      // 追加された点を選択状態にしてユーザーがすぐに高度などを編集できるよう導線
+      const newPoints = state.composition.points
+      const last = newPoints[newPoints.length - 1]
+      if (last) actions.selectPoint(last.id)
+    },
+  })
+}
 
 // URL ?id= による composition 復元
 const urlId = new URLSearchParams(location.search).get('id')

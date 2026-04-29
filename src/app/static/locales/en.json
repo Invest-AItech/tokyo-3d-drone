@@ -323,6 +323,12 @@
     "tabMap": "🗺️ Map",
     "tabViewer": "🌐 3D",
     "tabEdit": "✏️ Edit",
-    "aiPrompt": "🤖 AI Prompt"
+    "aiPrompt": "🤖 AI Prompt",
+    "placeSearch": {
+      "title": "Place Search",
+      "placeholder": "e.g., Tokyo Station",
+      "outOfRange": "Out of Tokyo 23 wards",
+      "searchFailed": "Search failed"
+    }
   }
 }
