@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0a0e1a">
+  <meta name="description" content="TOKYO 3D Drone — 自分のカメラワークで東京を撮る。多点 + 高さ + ドローン視点で、PLATEAU 3D 都市モデル上の自由なシネマティック映像を設計。">
+  <title>TOKYO 3D Drone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="theme-drone">
+  <header>
+    <button id="lang-toggle" type="button" aria-label="Toggle language">EN / JA</button>
+  </header>
+  <main>
+    <section class="hero">
+      <span class="kicker">MISSION 03 · DRONE</span>
+      <h1 data-ja="自分のカメラワークで東京を撮る" data-en="Compose your own cinematic drone shot over Tokyo">自分のカメラワークで東京を撮る</h1>
+      <p class="lede" data-ja="多点 + 高さ + ドローン視点。PLATEAU 3D 都市モデル上で、自由なシネマティック映像を設計できます。" data-en="Multiple waypoints + altitude + drone view. Design free-form cinematic flights over PLATEAU 3D city models.">多点 + 高さ + ドローン視点。PLATEAU 3D 都市モデル上で、自由なシネマティック映像を設計できます。</p>
+      <a id="launch-btn" href="https://tokyo-3d-drone-tcus2zi5tq-an.a.run.app/start" class="cta">
+        <span data-ja="アプリを試す" data-en="Launch app">アプリを試す</span>
+      </a>
+    </section>
+
+    <section class="features">
+      <article>
+        <h2 data-ja="多点 + 高さ" data-en="Multi-waypoint + altitude">多点 + 高さ</h2>
+        <p data-ja="最大 50 点まで地点 + 高度を自由に配置。" data-en="Place up to 50 waypoints with custom altitude.">最大 50 点まで地点 + 高度を自由に配置。</p>
+      </article>
+      <article>
+        <h2 data-ja="シネマティック補間" data-en="Cinematic interpolation">シネマティック補間</h2>
+        <p data-ja="τ 平滑化と先読みで、滑らかなドローン撮影風カメラ。" data-en="Smooth drone-style camera with τ EMA and lookahead.">τ 平滑化と先読みで、滑らかなドローン撮影風カメラ。</p>
+      </article>
+      <article>
+        <h2 data-ja="プリセット共有" data-en="Preset sharing">プリセット共有</h2>
+        <p data-ja="自分の構図をコミュニティ掲示板で共有。" data-en="Share your compositions on the community board.">自分の構図をコミュニティ掲示板で共有。</p>
+      </article>
+    </section>
+
+    <section class="trilogy">
+      <h2 data-ja="3 部作の他のミッション" data-en="Other missions in this trilogy">3 部作の他のミッション</h2>
+      <div class="trilogy-grid">
+        <a href="https://invest-aitech-plateau-3d.web.app/" class="trilogy-card">
+          <span class="kicker">MISSION 01 · VIEW</span>
+          <h3>TOKYO 3D View</h3>
+          <p data-ja="1 点指定で周辺建物を立体表示" data-en="One-point lookup of surrounding buildings">1 点指定で周辺建物を立体表示</p>
+        </a>
+        <a href="https://invest-aitech-route-3d.web.app/" class="trilogy-card">
+          <span class="kicker">MISSION 02 · ROUTE</span>
+          <h3>TOKYO 3D Route</h3>
+          <p data-ja="2 点ルートをドローン視点で自動飛行" data-en="Two-point route flythrough in drone view">2 点ルートをドローン視点で自動飛行</p>
+        </a>
+      </div>
+    </section>
+
+    <footer>
+      <p class="attribution" data-ja="本サービスは PLATEAU の 3D 都市モデルデータを利用しています。" data-en="This service uses 3D city model data from PLATEAU.">本サービスは PLATEAU の 3D 都市モデルデータを利用しています。</p>
+      <p class="attribution" data-ja="地形データは、測量法に基づく国土地理院長承認（使用）R3JHs 778を得て使用" data-en="Terrain data used under Japan GSI approval R3JHs 778, in accordance with the Survey Act.">地形データは、測量法に基づく国土地理院長承認（使用）R3JHs 778を得て使用</p>
+    </footer>
+  </main>
+
+  <script>
+    // Cloud Run warmup (CLAUDE.md 準拠: no-cors, no-store)
+    const CLOUD_RUN = "https://tokyo-3d-drone-tcus2zi5tq-an.a.run.app";
+    fetch(CLOUD_RUN + "/warmup", { mode: "no-cors", cache: "no-store" }).catch(() => {});
+
+    // Launch button click → aria-busy + 起動中... display
+    const launchBtn = document.getElementById("launch-btn");
+    launchBtn.addEventListener("click", () => {
+      launchBtn.setAttribute("aria-busy", "true");
+      const span = launchBtn.querySelector("span");
+      const isEn = document.documentElement.lang === "en";
+      span.textContent = isEn ? "Launching..." : "起動中...";
+    });
+  </script>
+  <script src="/ja-en-toggle.js"></script>
+</body>
+</html>
