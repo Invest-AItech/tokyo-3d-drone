@@ -57,19 +57,22 @@ describe('buildAIPrompt', () => {
     expect(INVARIANTS).toContain('20km')
   })
 
-  it('exports RECOMMENDED_SPEC as a string with cinematic preset details', () => {
+  it('exports RECOMMENDED_SPEC as a string with master prompt v4 details', () => {
     expect(typeof RECOMMENDED_SPEC).toBe('string')
-    expect(RECOMMENDED_SPEC.length).toBeGreaterThan(5000)
-    expect(RECOMMENDED_SPEC).toContain('30点プリセット')
-    expect(RECOMMENDED_SPEC).toContain('orbit_R')
-    expect(RECOMMENDED_SPEC).toContain('aim_at')
+    expect(RECOMMENDED_SPEC.length).toBeGreaterThan(10000)
+    // v4 prompt 固有のキーワード
+    expect(RECOMMENDED_SPEC).toContain('マスタープロンプト v4')
+    expect(RECOMMENDED_SPEC).toContain('11 型')
+    expect(RECOMMENDED_SPEC).toContain('バラエティ・パレット')
+    expect(RECOMMENDED_SPEC).toContain('ヒーロー複合型')
+    expect(RECOMMENDED_SPEC).toContain('リビール型')
   })
 
   it('default mode does NOT include RECOMMENDED_SPEC', () => {
     const empty = { v: 1, points: [], segments: [], global: {} }
     const p = buildAIPrompt(empty)
-    expect(p).not.toContain('シネマティック・プリセット組み立て仕様書')
-    expect(p).not.toContain('orbit_R')
+    expect(p).not.toContain('マスタープロンプト v4')
+    expect(p).not.toContain('バラエティ・パレット')
   })
 
   it('recommended mode appends RECOMMENDED_SPEC after the base prompt', () => {
@@ -78,9 +81,9 @@ describe('buildAIPrompt', () => {
     const rec = buildAIPrompt(empty, { recommended: true })
     expect(rec.length).toBeGreaterThan(base.length)
     expect(rec).toContain(base)
-    expect(rec).toContain('シネマティック・プリセット詳細仕様書')
-    expect(rec).toContain('orbit_R')
-    expect(rec).toContain('30点プリセット')
+    expect(rec).toContain('マスタープロンプト v4')
+    expect(rec).toContain('11 型')
+    expect(rec).toContain('バラエティ・パレット')
   })
 
   it('recommended mode respects includeCurrent option', () => {
@@ -98,7 +101,7 @@ describe('buildAIPrompt', () => {
     expect(recWithCurrent).toContain('139.9999')
     expect(recWithoutCurrent).not.toContain('139.9999')
     // Both still include the spec
-    expect(recWithCurrent).toContain('orbit_R')
-    expect(recWithoutCurrent).toContain('orbit_R')
+    expect(recWithCurrent).toContain('マスタープロンプト v4')
+    expect(recWithoutCurrent).toContain('マスタープロンプト v4')
   })
 })
