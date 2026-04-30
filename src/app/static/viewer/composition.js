@@ -102,6 +102,33 @@ export function applyToAllSegments(comp, key, value) {
   return { ...comp, segments: newSegments }
 }
 
+// 選択点の編集可能パラメータ全部 (altM / pitchDeg / headingRelDeg / hoverS / cornerRadiusM)
+// を全点に一括コピーする。lon/lat/id は各点固有なのでコピーしない。
+const POINT_BULK_KEYS = ['altM', 'pitchDeg', 'headingRelDeg', 'hoverS', 'cornerRadiusM']
+export function applyAllPointParams(comp, sourcePoint) {
+  if (!sourcePoint) return comp
+  const updates = {}
+  for (const k of POINT_BULK_KEYS) {
+    if (sourcePoint[k] !== undefined) updates[k] = sourcePoint[k]
+  }
+  const newPoints = comp.points.map(p => ({ ...p, ...updates }))
+  return { ...comp, points: newPoints }
+}
+
+// 選択区間の編集可能パラメータ (durationS / speedKmh の指定されているもの) を全区間に一括コピー。
+// from/to は各区間固有なのでコピーしない。durationS と speedKmh は両立しないため、
+// 指定されていない方は元の各区間値を残す（=残された方が優先のまま）。
+const SEGMENT_BULK_KEYS = ['durationS', 'speedKmh']
+export function applyAllSegmentParams(comp, sourceSegment) {
+  if (!sourceSegment) return comp
+  const updates = {}
+  for (const k of SEGMENT_BULK_KEYS) {
+    if (sourceSegment[k] !== undefined) updates[k] = sourceSegment[k]
+  }
+  const newSegments = comp.segments.map(s => ({ ...s, ...updates }))
+  return { ...comp, segments: newSegments }
+}
+
 export function validateComposition(c) {
   if (!c || typeof c !== 'object') throw new Error('composition must be an object')
   if (c.v !== 1) throw new Error(`unsupported version: ${c.v}`)

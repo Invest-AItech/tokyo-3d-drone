@@ -11,6 +11,8 @@ import {
   removeLastPoint,
   applyToAllPoints,
   applyToAllSegments,
+  applyAllPointParams,
+  applyAllSegmentParams,
 } from '../app/static/viewer/composition.js'
 
 describe('emptyComposition', () => {
@@ -200,5 +202,97 @@ describe('applyToAllSegments', () => {
     c = addPoint(c, { lon: 139.72, lat: 35.62 })
     const updated = applyToAllSegments(c, 'speedKmh', 120)
     expect(updated.segments.every(s => s.speedKmh === 120)).toBe(true)
+  })
+})
+
+describe('applyAllPointParams', () => {
+  it('copies altM/pitchDeg/headingRelDeg/hoverS/cornerRadiusM from source to every point but keeps lon/lat per-point', () => {
+    let c = emptyComposition()
+    c = addPoint(c, { lon: 139.70, lat: 35.60 })
+    c = addPoint(c, { lon: 139.71, lat: 35.61 })
+    c = addPoint(c, { lon: 139.72, lat: 35.62 })
+
+    // make point[1] the rich source
+    c = {
+      ...c,
+      points: c.points.map((p, i) =>
+        i === 1
+          ? { ...p, altM: 222, pitchDeg: -33, headingRelDeg: 17, hoverS: 1.5, cornerRadiusM: 75 }
+          : p
+      ),
+    }
+
+    const updated = applyAllPointParams(c, c.points[1])
+
+    // every point now has the bulk-copied parameters
+    for (const p of updated.points) {
+      expect(p.altM).toBe(222)
+      expect(p.pitchDeg).toBe(-33)
+      expect(p.headingRelDeg).toBe(17)
+      expect(p.hoverS).toBe(1.5)
+      expect(p.cornerRadiusM).toBe(75)
+    }
+
+    // lon/lat per-point are preserved
+    expect(updated.points[0].lon).toBeCloseTo(139.70)
+    expect(updated.points[1].lon).toBeCloseTo(139.71)
+    expect(updated.points[2].lon).toBeCloseTo(139.72)
+
+    // segments are untouched
+    expect(updated.segments).toEqual(c.segments)
+  })
+
+  it('skips undefined fields on the source (does not write undefined into other points)', () => {
+    let c = emptyComposition()
+    c = addPoint(c, { lon: 139.70, lat: 35.60 })
+    c = addPoint(c, { lon: 139.71, lat: 35.61 })
+
+    // source has only altM, no hoverS/cornerRadiusM
+    const sourceMinimal = { ...c.points[0], altM: 99 }
+    delete sourceMinimal.hoverS
+    delete sourceMinimal.cornerRadiusM
+
+    const updated = applyAllPointParams(c, sourceMinimal)
+
+    expect(updated.points.every(p => p.altM === 99)).toBe(true)
+    // hoverS / cornerRadiusM are NOT forced to undefined
+    for (const p of updated.points) {
+      expect(p.hoverS).not.toBeUndefined()  // either left at default 0 or original
+    }
+  })
+
+  it('returns the comp unchanged when source is null/undefined', () => {
+    let c = emptyComposition()
+    c = addPoint(c, { lon: 139.70, lat: 35.60 })
+    expect(applyAllPointParams(c, null)).toBe(c)
+    expect(applyAllPointParams(c, undefined)).toBe(c)
+  })
+})
+
+describe('applyAllSegmentParams', () => {
+  it('copies durationS to every segment (and clears speedKmh by overwrite)', () => {
+    let c = emptyComposition()
+    c = addPoint(c, { lon: 139.70, lat: 35.60 })
+    c = addPoint(c, { lon: 139.71, lat: 35.61 })
+    c = addPoint(c, { lon: 139.72, lat: 35.62 })
+
+    // give segment[0] a richer config
+    c = {
+      ...c,
+      segments: c.segments.map((s, i) =>
+        i === 0 ? { ...s, durationS: 18 } : s
+      ),
+    }
+
+    const updated = applyAllSegmentParams(c, c.segments[0])
+
+    expect(updated.segments.every(s => s.durationS === 18)).toBe(true)
+  })
+
+  it('returns the comp unchanged when source is null', () => {
+    let c = emptyComposition()
+    c = addPoint(c, { lon: 139.70, lat: 35.60 })
+    c = addPoint(c, { lon: 139.71, lat: 35.61 })
+    expect(applyAllSegmentParams(c, null)).toBe(c)
   })
 })

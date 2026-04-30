@@ -67,6 +67,12 @@ export function mountEditPane(container, { state, actions, subscribe }) {
           ${_numField('point', sel.id, 'headingRelDeg', '左右角 (°)', sel.headingRelDeg, -C.HEADING_REL_RANGE_DEG, C.HEADING_REL_RANGE_DEG, 5)}
           ${_numField('point', sel.id, 'hoverS', 'hover (秒)', sel.hoverS ?? 0, 0, C.MAX_HOVER_S, 0.5)}
           ${_numField('point', sel.id, 'cornerRadiusM', 'カーブ半径 (m)', sel.cornerRadiusM ?? c.global.cornerRadiusM, 0, C.MAX_CORNER_RADIUS_M, 5)}
+          <div class="bulk-apply-row">
+            <button class="bulk-apply-btn" data-act="apply-all-point-params"
+                    title="この点の全パラメータ (高さ・俯角・左右角・hover・カーブ) を全 ${c.points.length} 点にコピー"
+                    data-i18n-attr-title="creator.applyAllParamsHint"
+                    data-i18n="creator.applyAllParams">→ 全パラメータを全点に適用</button>
+          </div>
         </section>
         ` : ''}
 
@@ -75,6 +81,13 @@ export function mountEditPane(container, { state, actions, subscribe }) {
           <h2 data-i18n="creator.segments">区間</h2>
           ${segIn >= 0 ? _segField(segIn, c.segments[segIn]) : ''}
           ${segOut >= 0 ? _segField(segOut, c.segments[segOut]) : ''}
+          <div class="bulk-apply-row">
+            <button class="bulk-apply-btn" data-act="apply-all-segment-params"
+                    data-idx="${segIn >= 0 ? segIn : segOut}"
+                    title="この区間の全パラメータ (秒・速度) を全 ${c.segments.length} 区間にコピー"
+                    data-i18n-attr-title="creator.applyAllSegmentParamsHint"
+                    data-i18n="creator.applyAllSegmentParams">→ 全パラメータを全区間に適用</button>
+          </div>
         </section>
         ` : ''}
 
@@ -149,6 +162,31 @@ export function mountEditPane(container, { state, actions, subscribe }) {
         if (value == null) return
         if (confirm(`全 ${s.composition.segments.length} 区間の ${key} を ${value} に揃えますか？`)) {
           actions.applyToAllSegments(key, value)
+        }
+      })
+    })
+
+    // → 全パラメータを全点に適用（選択点の全フィールドを一括コピー）
+    container.querySelectorAll('button[data-act="apply-all-point-params"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sel = s.composition.points.find(p => p.id === s.selectedPointId)
+        if (!sel) return
+        const n = s.composition.points.length
+        if (confirm(`全 ${n} 点の高さ・俯角・左右角・hover・カーブ半径を「点 ${sel.id}」と同じ値に揃えますか？\n（lon/lat は各点固有のため変更されません）`)) {
+          actions.applyAllPointParams(sel)
+        }
+      })
+    })
+
+    // → 全パラメータを全区間に適用（選択区間の全フィールドを一括コピー）
+    container.querySelectorAll('button[data-act="apply-all-segment-params"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.idx)
+        const seg = s.composition.segments[idx]
+        if (!seg) return
+        const n = s.composition.segments.length
+        if (confirm(`全 ${n} 区間の秒数・速度を「区間 ${seg.from}→${seg.to}」と同じ値に揃えますか？`)) {
+          actions.applyAllSegmentParams(seg)
         }
       })
     })

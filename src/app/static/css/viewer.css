@@ -46,6 +46,24 @@ body[data-page="creator"] {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.topbar .brand__seg {
+  display: inline;
+}
+/* モバイル: 縦 3 行スタックでコンパクトに（"tokyo" / "-3d-" / "drone"） */
+@media (max-width: 600px) {
+  .topbar .brand {
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1;
+    font-size: 0.75em;
+    text-align: center;
+  }
+  .topbar .brand__seg {
+    display: block;
+  }
 }
 .topbar .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .topbar button {
@@ -272,6 +290,35 @@ body[data-page="creator"][data-viewer-only="true"] #place-search-pane {
 .apply-all-btn:hover {
   color: var(--accent-b);
   border-color: var(--accent-b);
+}
+
+/* Bulk apply (全パラメータ) row — section 末尾に配置、Magenta アクセントで「重い操作」を可視化 */
+.bulk-apply-row {
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border);
+  display: flex;
+}
+.bulk-apply-btn {
+  flex: 1 1 auto;
+  font-family: var(--mono);
+  font-size: 0.78em;
+  padding: 0.4rem 0.7rem;
+  background: rgba(232, 121, 249, 0.08);
+  color: var(--accent-a);
+  border: 1px solid var(--accent-a);
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.bulk-apply-btn:hover {
+  background: var(--accent-a);
+  color: var(--bg);
+}
+.bulk-apply-btn:focus-visible {
+  outline: 2px solid var(--accent-a);
+  outline-offset: 2px;
 }
 
 /* Edit pane */

@@ -35,7 +35,7 @@ export function mountTopbar(container, { state, actions, subscribe }) {
         <span class="topbar-back__icon" aria-hidden="true">←</span>
         <span class="topbar-back__label" data-i18n="creator.backToLanding">トップ</span>
       </a>
-      <span class="brand">tokyo-3d-drone · Composition Editor</span>
+      <span class="brand" aria-label="tokyo-3d-drone"><span class="brand__seg">tokyo</span><span class="brand__seg">-3d-</span><span class="brand__seg">drone</span></span>
       <div class="actions">
         <button data-action="play" data-i18n="creator.play">▶ Play</button>
         <button data-action="stop" data-i18n="creator.stop">⏸ Stop</button>

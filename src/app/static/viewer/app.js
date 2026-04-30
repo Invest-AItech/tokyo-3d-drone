@@ -2,7 +2,7 @@
 // - グローバルステート管理 (state / setState / subscribe)
 // - 各パネルの結線
 // - URL ?id= による composition 復元
-import { emptyComposition, addPoint, removePoint, movePoint, resetPoints, validateComposition, removeLastPoint, applyToAllPoints, applyToAllSegments } from './composition.js'
+import { emptyComposition, addPoint, removePoint, movePoint, resetPoints, validateComposition, removeLastPoint, applyToAllPoints, applyToAllSegments, applyAllPointParams, applyAllSegmentParams } from './composition.js'
 import { mountTopbar } from './panels/topbar.js'
 import { mountMapPane } from './panels/map-pane.js'
 import { mountViewerPane } from './panels/viewer-pane.js'
@@ -106,6 +106,8 @@ const actions = {
   removeLastPoint: () => setState({ composition: removeLastPoint(state.composition), selectedPointId: null }),
   applyToAllPoints: (key, value) => setState({ composition: applyToAllPoints(state.composition, key, value) }),
   applyToAllSegments: (key, value) => setState({ composition: applyToAllSegments(state.composition, key, value) }),
+  applyAllPointParams: (sourcePoint) => setState({ composition: applyAllPointParams(state.composition, sourcePoint) }),
+  applyAllSegmentParams: (sourceSegment) => setState({ composition: applyAllSegmentParams(state.composition, sourceSegment) }),
   triggerPreviewTiles: () => setState({ previewTilesTrigger: Date.now() }),
   togglePolyline: () => {
     const next = !state.showPolyline
