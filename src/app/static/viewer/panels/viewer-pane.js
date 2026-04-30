@@ -81,6 +81,18 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
 
   // --- overlay ---
 
+  // 地形標高 + 各点 altM を合成して絶対高度の Cartesian を返す。
+  // PLATEAU-Terrain で建物が地表に接地している前提で、altM を「地表からの高度」として扱う
+  // （spec.md と camera-pure.js の解釈と一致）。地形がまだロード中なら getHeight=undefined → 0 で fallback、
+  // 1〜2 フレーム後に正しく補正される（CallbackProperty で毎フレーム再評価するため）。
+  const _scratchCarto = new Cesium.Cartographic()
+  function _absolutePositionForPoint(p) {
+    Cesium.Cartographic.fromDegrees(p.lon, p.lat, 0, _scratchCarto)
+    const terrainH = viewer.scene.globe.getHeight(_scratchCarto)
+    const h = (typeof terrainH === 'number' ? terrainH : 0) + p.altM
+    return Cesium.Cartesian3.fromDegrees(p.lon, p.lat, h)
+  }
+
   function syncOverlay(comp, showPolyline = true) {
     // polyline と points をワンセットで制御。
     // showPolyline=false → 経路 + 各点 (ABCD...) ともに非表示にして、3D 建物 + 地図だけのクリーンビューに。
@@ -91,10 +103,17 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
     if (showPolyline && comp.points.length >= 2) {
       polylineEntity = viewer.entities.add({
         polyline: {
-          // 3D で点と点を直線で結ぶ（地面に貼り付けず、各点の高度で空中を通す）
-          positions: Cesium.Cartesian3.fromDegreesArrayHeights(
-            comp.points.flatMap(p => [p.lon, p.lat, p.altM]),
-          ),
+          // 経路の 3D 直線。各点の altM は「地表からの高度」なので毎フレーム globe.getHeight() で
+          // 地形標高を加算して絶対高度に変換する。これで PLATEAU-Terrain の地形と建物に対し
+          // 経路が正しく浮上する（補正前は標高 30m 地区で 30m 沈むズレが発生していた）。
+          positions: new Cesium.CallbackProperty(() => {
+            const arr = []
+            for (const p of comp.points) {
+              const c = _absolutePositionForPoint(p)
+              arr.push(c)
+            }
+            return arr
+          }, false),
           width: 4,
           material: Cesium.Color.fromCssColorString(POLYLINE_COLOR).withAlpha(0.7),
           clampToGround: false,
@@ -121,6 +140,9 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
     }
     comp.points.forEach(p => {
       const existing = pointEntities.get(p.id)
+      // 点マーカーは Cesium 標準の HeightReference.RELATIVE_TO_GROUND を使用。
+      // 位置の altM は「地表からの高度」として Cesium 側で自動的に地形標高を加算してくれる
+      // （globe.heightReferenceSupported で WebGL2 環境ならネイティブサポート）。
       const position = Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.altM)
       if (existing) {
         existing.position = new Cesium.ConstantPositionProperty(position)
@@ -132,6 +154,7 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
             color: Cesium.Color.fromCssColorString(POINT_COLOR),
             outlineColor: Cesium.Color.WHITE,
             outlineWidth: 2,
+            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
           },
           label: {
             text: p.id,
@@ -141,6 +164,7 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
             outlineWidth: 2,
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
             pixelOffset: new Cesium.Cartesian2(0, -20),
+            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
           },
         })
         pointEntities.set(p.id, ent)
