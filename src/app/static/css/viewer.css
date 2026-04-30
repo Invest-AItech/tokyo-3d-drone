@@ -394,29 +394,92 @@ body[data-page="creator"][data-viewer-only="true"] #place-search-pane {
 .point-row button:disabled { opacity: 0.3; cursor: not-allowed; }
 .hint { color: var(--text-dim); font-size: 0.85em; }
 
-/* Numfield (range slider rows) */
+/* Numfield: ラベル → スライダー + 数値直接入力 → 範囲・→All ボタンの 3 段構成
+ * モバイルでもスライダーだけだと精密調整できないため、横並びで <input type="number"> を併設。
+ * 数値入力にはキーボード（数字パッド）が出る inputmode="decimal" を指定。
+ * iOS Safari の auto-zoom 防止に font-size: 16px を必須化。 */
 .numfield {
-  display: grid;
-  grid-template-columns: 5em 1fr 4em auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.4rem 0;
+  font-size: 0.85em;
+  border-bottom: 1px dotted rgba(31, 41, 55, 0.6);
+}
+.numfield:last-child { border-bottom: none; }
+.numfield-label { color: var(--text-dim); font-weight: 500; }
+.numfield-row {
+  display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.3rem 0;
-  font-size: 0.85em;
 }
-.numfield-label { color: var(--text-dim); }
+.numfield-slider {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--accent-a);
+}
+.numfield-num {
+  flex: 0 0 auto;
+  width: 4.5em;
+  padding: 0.35rem 0.4rem;
+  background: var(--bg-pane);
+  color: var(--accent-a);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 16px;            /* iOS auto-zoom 防止に最低 16px */
+  text-align: right;
+  -moz-appearance: textfield;
+}
+.numfield-num:focus {
+  outline: none;
+  border-color: var(--accent-a);
+  box-shadow: 0 0 6px rgba(232, 121, 249, 0.4);
+}
+/* スピンボタン (上下矢印) はモバイルで邪魔なので非表示 */
+.numfield-num::-webkit-outer-spin-button,
+.numfield-num::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.numfield-unit {
+  font-family: var(--mono);
+  color: var(--text-dim);
+  font-size: 0.85em;
+  flex: 0 0 auto;
+}
+.numfield-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.75em;
+}
+.numfield-range {
+  font-family: var(--mono);
+  color: var(--text-dim);
+}
+
+/* 後方互換: 旧 .numfield-value（残存箇所があれば） */
 .numfield-value { font-family: var(--mono); color: var(--accent-a); text-align: right; }
-.numfield input[type="range"] { width: 100%; accent-color: var(--accent-a); }
 
 .seg-row {
-  display: grid;
-  grid-template-columns: 6em 1fr 5em auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem 0;
+  font-size: 0.85em;
+  border-bottom: 1px dotted rgba(31, 41, 55, 0.6);
+}
+.seg-row__head {
+  display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.3rem 0;
-  font-size: 0.85em;
+  flex-wrap: wrap;
 }
 .seg-label { font-family: var(--mono); color: var(--accent-b); }
-.seg-row input[type="range"] { width: 100%; accent-color: var(--accent-b); }
+.seg-row .numfield-slider { accent-color: var(--accent-b); }
+.seg-row .numfield-num { color: var(--accent-b); }
 
 .select-field {
   display: grid;

@@ -133,6 +133,38 @@ export function mountEditPane(container, { state, actions, subscribe }) {
       })
     })
 
+    // 数値直接入力（slider と並列。スマホで精密調整しやすくする）
+    container.querySelectorAll('input[type="number"][data-act-num]').forEach(el => {
+      el.addEventListener('input', () => {
+        // 入力途中（"-" や "." だけの状態、空文字）は state 更新しない
+        if (el.value === '' || el.value === '-' || el.value === '.') return
+        const value = Number(el.value)
+        if (!Number.isFinite(value)) return
+        const key = el.dataset.key
+        const scope = el.dataset.actNum
+        if (scope === 'point') {
+          actions.updatePoint(el.dataset.id, { [key]: value })
+        } else if (scope === 'global') {
+          actions.updateGlobal({ [key]: value })
+        } else if (scope === 'segment') {
+          actions.updateSegment(Number(el.dataset.idx), { [key]: value })
+        }
+      })
+      // blur 時に範囲外なら clamp して再描画を促す
+      el.addEventListener('blur', () => {
+        if (el.value === '') return
+        const v = Number(el.value)
+        if (!Number.isFinite(v)) return
+        const min = Number(el.min)
+        const max = Number(el.max)
+        const clamped = Math.min(max, Math.max(min, v))
+        if (clamped !== v) {
+          el.value = String(clamped)
+          el.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+      })
+    })
+
     container.querySelectorAll('select[data-act="global"]').forEach(el => {
       el.addEventListener('change', () => {
         actions.updateGlobal({ [el.dataset.key]: el.value })
@@ -238,10 +270,17 @@ export function mountEditPane(container, { state, actions, subscribe }) {
     return `
       <label class="numfield">
         <span class="numfield-label">${label}</span>
-        <input type="range" min="${min}" max="${max}" step="${step}" value="${v}"
-               data-act="${scope}" data-key="${key}" data-id="${id}">
-        <span class="numfield-value">${v}</span>
-        ${showAll ? `<button class="apply-all-btn" data-act="apply-all-point" data-key="${key}" title="この値を全点に反映" data-i18n="creator.applyAll">→ All</button>` : ''}
+        <div class="numfield-row">
+          <input type="range" class="numfield-slider" min="${min}" max="${max}" step="${step}" value="${v}"
+                 data-act="${scope}" data-key="${key}" data-id="${id}">
+          <input type="number" class="numfield-num" min="${min}" max="${max}" step="${step}" value="${v}"
+                 data-act-num="${scope}" data-key="${key}" data-id="${id}"
+                 inputmode="decimal" aria-label="${label} 直接入力">
+        </div>
+        <div class="numfield-meta">
+          <span class="numfield-range">${min} 〜 ${max}</span>
+          ${showAll ? `<button class="apply-all-btn" data-act="apply-all-point" data-key="${key}" title="この値を全点に反映" data-i18n="creator.applyAll">→ All</button>` : ''}
+        </div>
       </label>
     `
   }
@@ -257,22 +296,32 @@ export function mountEditPane(container, { state, actions, subscribe }) {
     const key = isDuration ? 'durationS' : 'speedKmh'
     return `
       <div class="seg-row">
-        <span class="seg-label">${_esc(seg.from)} → ${_esc(seg.to)}</span>
-        <div class="unit-toggle" role="tablist" aria-label="区間タイミング単位">
-          <button class="unit-toggle-btn${isDuration ? ' active' : ''}"
-                  role="tab" aria-selected="${isDuration}"
-                  data-act="seg-unit" data-idx="${idx}" data-mode="duration"
-                  title="区間の所要時間を秒で指定">🕐 秒</button>
-          <button class="unit-toggle-btn${!isDuration ? ' active' : ''}"
-                  role="tab" aria-selected="${!isDuration}"
-                  data-act="seg-unit" data-idx="${idx}" data-mode="speed"
-                  title="区間の巡航速度を km/h で指定">🛞 速度</button>
+        <div class="seg-row__head">
+          <span class="seg-label">${_esc(seg.from)} → ${_esc(seg.to)}</span>
+          <div class="unit-toggle" role="tablist" aria-label="区間タイミング単位">
+            <button class="unit-toggle-btn${isDuration ? ' active' : ''}"
+                    role="tab" aria-selected="${isDuration}"
+                    data-act="seg-unit" data-idx="${idx}" data-mode="duration"
+                    title="区間の所要時間を秒で指定">🕐 秒</button>
+            <button class="unit-toggle-btn${!isDuration ? ' active' : ''}"
+                    role="tab" aria-selected="${!isDuration}"
+                    data-act="seg-unit" data-idx="${idx}" data-mode="speed"
+                    title="区間の巡航速度を km/h で指定">🛞 速度</button>
+          </div>
         </div>
-        <input type="range" min="${min}" max="${max}" step="${step}" value="${value}"
-               data-act="segment" data-key="${key}" data-idx="${idx}">
-        <span class="numfield-value">${value} ${unit}</span>
-        <button class="apply-all-btn" data-act="apply-all-segment" data-key="${key}" data-idx="${idx}"
-                title="この値を全区間に反映" data-i18n="creator.applyAll">→ All</button>
+        <div class="numfield-row">
+          <input type="range" class="numfield-slider" min="${min}" max="${max}" step="${step}" value="${value}"
+                 data-act="segment" data-key="${key}" data-idx="${idx}">
+          <input type="number" class="numfield-num" min="${min}" max="${max}" step="${step}" value="${value}"
+                 data-act-num="segment" data-key="${key}" data-idx="${idx}"
+                 inputmode="decimal" aria-label="${unit} 直接入力">
+          <span class="numfield-unit">${unit}</span>
+        </div>
+        <div class="numfield-meta">
+          <span class="numfield-range">${min} 〜 ${max} ${unit}</span>
+          <button class="apply-all-btn" data-act="apply-all-segment" data-key="${key}" data-idx="${idx}"
+                  title="この値を全区間に反映" data-i18n="creator.applyAll">→ All</button>
+        </div>
       </div>
     `
   }
