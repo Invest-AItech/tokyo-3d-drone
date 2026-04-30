@@ -221,6 +221,15 @@ export function mountEditPane(container, { state, actions, subscribe }) {
 
     // i18n: render 後に data-i18n 属性を再適用
     if (window.i18n?.applyToDom) window.i18n.applyToDom()
+
+    // 選択点が POINTS リストの可視範囲内に来るよう自動スクロール
+    // （リストが独立スクロール領域になったため、選択行が画面外にあると編集しづらい）
+    if (s.selectedPointId) {
+      const selRow = container.querySelector('.point-row.sel')
+      if (selRow && typeof selRow.scrollIntoView === 'function') {
+        selRow.scrollIntoView({ block: 'nearest', behavior: 'auto' })
+      }
+    }
   }
 
   function _numField(scope, id, key, label, value, min, max, step) {

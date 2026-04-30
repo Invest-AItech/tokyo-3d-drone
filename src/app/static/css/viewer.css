@@ -335,8 +335,32 @@ body[data-page="creator"][data-viewer-only="true"] #place-search-pane {
 .edit h2:first-child { margin-top: 0; }
 .edit section + section { margin-top: 0.5rem; }
 
-/* Point list */
-.point-list { list-style: none; padding: 0; margin: 0; }
+/* Point list — POINTS だけ独立スクロール（点が多い時に他セクションへ届きやすくする） */
+.point-list {
+  list-style: none;
+  padding: 0 0.25rem 0 0;
+  margin: 0;
+  /* 50 点並んでも縦に伸びすぎず、リスト内でスクロールする */
+  max-height: min(34vh, 320px);
+  overflow-y: auto;
+  /* 視覚的に「ここはスクロール領域」と分かるよう薄く境界 */
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.01);
+  /* 細めのカスタムスクロールバー（dark theme） */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.point-list::-webkit-scrollbar { width: 6px; }
+.point-list::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+.point-list::-webkit-scrollbar-thumb:hover { background: var(--accent-a); }
+.point-list::-webkit-scrollbar-track { background: transparent; }
+.point-list .point-row { padding-left: 0.5rem; padding-right: 0.5rem; }
+/* selected 行は内部スクロールでも視認できるよう、自動で view に入れる工夫を CSS では限界。
+ * (smooth scrolling は edit-pane.js 側で element.scrollIntoView を使うのが確実) */
 .point-row {
   display: flex;
   align-items: center;
