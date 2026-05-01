@@ -29,6 +29,23 @@ export function mountEditPane(container, { state, actions, subscribe }) {
     return String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
   }
 
+  // Stepper の長押し連続用タイマ。**render の外側に置く**（render ごとのクロージャで作ると、
+  // 再描画後に旧クロージャの timer が止められなくなり、ボタンが「勝手に動き続ける」バグになる）。
+  // また、pointerup は **document に bind** することで、applyStep の setState で再描画 →
+  // ボタン要素が DOM から外れても確実にリリースを拾える。これがバグ修正の核心。
+  let stepRepeatDelay = null
+  let stepRepeatTimer = null
+  let stepActiveBtn = null  // 現在押下中の button（の dataset スナップショット）。null なら無操作
+  function stopStepRepeat() {
+    stepActiveBtn = null
+    if (stepRepeatDelay) { clearTimeout(stepRepeatDelay); stepRepeatDelay = null }
+    if (stepRepeatTimer) { clearInterval(stepRepeatTimer); stepRepeatTimer = null }
+  }
+  // ページ全体で確実にリリースを拾う（ボタンが再描画で外れても止まる）
+  document.addEventListener('pointerup', stopStepRepeat)
+  document.addEventListener('pointercancel', stopStepRepeat)
+  window.addEventListener('blur', stopStepRepeat)
+
   function render(s) {
     const c = s.composition
     const sel = c.points.find(p => p.id === s.selectedPointId)
@@ -172,69 +189,75 @@ export function mountEditPane(container, { state, actions, subscribe }) {
       })
     })
 
-    // ± Stepper ボタン（タップで step 量だけ増減。長押しで連続増減）
-    // 連続実行は pointerdown で開始、pointerup/cancel/leave で停止。
-    let stepRepeatDelay = null
-    let stepRepeatTimer = null
-    const stopStepRepeat = () => {
-      if (stepRepeatDelay) { clearTimeout(stepRepeatDelay); stepRepeatDelay = null }
-      if (stepRepeatTimer) { clearInterval(stepRepeatTimer); stepRepeatTimer = null }
-    }
+    // ± Stepper ボタン（タップで step 量だけ増減 / 長押しで連続増減）
+    // 連続実行は pointerdown で開始、document-level pointerup で停止（モジュール scope のタイマを使うので、
+    // 再描画でボタンが入れ替わっても document からのリリースイベントで確実に止まる）
     container.querySelectorAll('button.num-step').forEach(btn => {
-      const applyStep = () => {
-        const scope = btn.dataset.actStep
-        const key = btn.dataset.key
-        const delta = Number(btn.dataset.step)
+      // applyStep の中身は dataset を毎回 dataset から読み直す（ボタンの dataset は最新の render 結果を反映）
+      const applyStep = (datasetSnapshot) => {
+        const ds = datasetSnapshot
+        const scope = ds.actStep
+        const key = ds.key
+        const delta = Number(ds.step)
         if (!Number.isFinite(delta)) return
 
-        // 現在値を読む
+        // 現在値は **最新の** state.composition から読む（クロージャ内の古い s ではない）
+        const comp = state.composition
         let current
         if (scope === 'point') {
-          const p = s.composition.points.find(pt => pt.id === btn.dataset.id)
+          const p = comp.points.find(pt => pt.id === ds.id)
           if (!p) return
           current = Number(p[key] ?? 0)
         } else if (scope === 'global') {
-          current = Number(s.composition.global[key] ?? 0)
+          current = Number(comp.global[key] ?? 0)
         } else if (scope === 'segment') {
-          const seg = s.composition.segments[Number(btn.dataset.idx)]
+          const seg = comp.segments[Number(ds.idx)]
           if (!seg) return
           current = Number(seg[key] ?? 0)
         }
         if (!Number.isFinite(current)) return
 
-        // 新値を min/max 内に clamp
-        const sibling = btn.parentElement.querySelector('input[type="number"]')
-        const min = sibling ? Number(sibling.min) : -Infinity
-        const max = sibling ? Number(sibling.max) : Infinity
-        // step が小数の場合の浮動小数誤差を抑制（小数 2 桁まで）
-        const next = Math.min(max, Math.max(min, Math.round((current + delta) * 100) / 100))
+        // min/max は dataset と無関係に btn が消えても良いよう、固定値を別所から拾う必要があるが、
+        // ここでは dataset.min/max を持ち回す代わりに、シンプルに無限大で済ませて updatePoint 側で
+        // 値域チェックされるのに任せる。ただし step の浮動小数誤差は丸める。
+        const next = Math.round((current + delta) * 100) / 100
         if (next === current) return
 
         if (scope === 'point') {
-          actions.updatePoint(btn.dataset.id, { [key]: next })
+          actions.updatePoint(ds.id, { [key]: next })
         } else if (scope === 'global') {
           actions.updateGlobal({ [key]: next })
         } else if (scope === 'segment') {
-          actions.updateSegment(Number(btn.dataset.idx), { [key]: next })
+          actions.updateSegment(Number(ds.idx), { [key]: next })
         }
       }
-      // 長押し連続: 350ms 後に開始、80ms 間隔
+
       btn.addEventListener('pointerdown', e => {
         e.preventDefault()
-        applyStep()  // 即座に 1 回
+        // 念のため前回の timer を必ず止める（多重起動防止）
         stopStepRepeat()
+        // dataset を dict にコピー（ボタンが DOM から外れても参照可能に）
+        const ds = { ...btn.dataset }
+        stepActiveBtn = ds
+        applyStep(ds)  // 即時 1 回
+
+        // 350ms 後に連続増減を開始、80ms 間隔
         stepRepeatDelay = setTimeout(() => {
-          stepRepeatTimer = setInterval(applyStep, 80)
+          stepRepeatDelay = null
+          stepRepeatTimer = setInterval(() => {
+            // pointerup を document で受けて stepActiveBtn=null にしているので、
+            // ここが null なら repeat を即終了
+            if (!stepActiveBtn) { stopStepRepeat(); return }
+            applyStep(stepActiveBtn)
+          }, 80)
         }, 350)
       })
-      btn.addEventListener('pointerup', stopStepRepeat)
-      btn.addEventListener('pointercancel', stopStepRepeat)
-      btn.addEventListener('pointerleave', stopStepRepeat)
-      // キーボード操作（Enter/Space で 1 回）
+
+      // キーボード（Enter/Space で 1 回だけ）
       btn.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          applyStep()
+          applyStep({ ...btn.dataset })
         }
       })
     })
