@@ -52,6 +52,15 @@ export function mountEditPane(container, { state, actions, subscribe }) {
   window.addEventListener('blur', stopStepRepeat)
 
   function render(s) {
+    // ★ render の核となるバグ修正:
+    //   container.innerHTML を全置換すると、子の .edit / .point-list の scrollTop が 0 にリセットされる。
+    //   これが「+/- ボタンを押すたびにパネルがトップへ戻る」根本原因。
+    //   → render 前に scrollTop を覚え、innerHTML 差し替え後に復元する。
+    const prevEdit = container.querySelector('.edit')
+    const prevList = container.querySelector('.point-list')
+    const savedEditScroll = prevEdit ? prevEdit.scrollTop : 0
+    const savedListScroll = prevList ? prevList.scrollTop : 0
+
     const c = s.composition
     const sel = c.points.find(p => p.id === s.selectedPointId)
 
@@ -356,24 +365,23 @@ export function mountEditPane(container, { state, actions, subscribe }) {
     // i18n: render 後に data-i18n 属性を再適用
     if (window.i18n?.applyToDom) window.i18n.applyToDom()
 
-    // 選択点が変わった時だけ POINTS リスト内で行を可視範囲へ
-    // （render 毎に呼ぶと、+/- ステッパーで再描画されるたびにパネルが top へ戻るバグになるため、
-    //  selectedPointId の遷移を検知して 1 度だけ実行）
-    if (s.selectedPointId && s.selectedPointId !== lastSelectedId) {
-      const selRow = container.querySelector('.point-row.sel')
-      if (selRow && typeof selRow.scrollIntoView === 'function') {
-        // POINTS リスト (`.point-list`) は独立スクロール領域なので、
-        // そのコンテナの中だけで動かす（外側 `.edit` には触らない）
-        const list = selRow.closest('.point-list')
-        if (list) {
-          // 選択行が list の表示範囲外なら、list 内で必要分だけスクロール
-          const rowTop = selRow.offsetTop - list.offsetTop
-          const rowBottom = rowTop + selRow.offsetHeight
-          if (rowTop < list.scrollTop) {
-            list.scrollTop = rowTop
-          } else if (rowBottom > list.scrollTop + list.clientHeight) {
-            list.scrollTop = rowBottom - list.clientHeight
-          }
+    // ★ 1. innerHTML 全置換で吹き飛んだ scrollTop を復元（ステッパー連打でトップへ戻るバグの本丸）
+    const newEdit = container.querySelector('.edit')
+    const newList = container.querySelector('.point-list')
+    if (newEdit) newEdit.scrollTop = savedEditScroll
+    if (newList) newList.scrollTop = savedListScroll
+
+    // ★ 2. 選択点が「変わった時だけ」POINTS リスト内で行を可視範囲へ。
+    //    selectedPointId 遷移検知なので、ステッパー操作中（id 変わらず）はスクロールしない。
+    if (s.selectedPointId && s.selectedPointId !== lastSelectedId && newList) {
+      const selRow = newList.querySelector('.point-row.sel')
+      if (selRow) {
+        const rowTop = selRow.offsetTop - newList.offsetTop
+        const rowBottom = rowTop + selRow.offsetHeight
+        if (rowTop < newList.scrollTop) {
+          newList.scrollTop = rowTop
+        } else if (rowBottom > newList.scrollTop + newList.clientHeight) {
+          newList.scrollTop = rowBottom - newList.clientHeight
         }
       }
     }
@@ -409,17 +417,31 @@ export function mountEditPane(container, { state, actions, subscribe }) {
   function _segField(idx, seg) {
     const mode = _segMode(seg)
     const isDuration = mode === 'duration'
-    const min = isDuration ? C.MIN_DURATION_S : C.MIN_SPEED_KMH
-    const max = isDuration ? Math.min(C.MAX_DURATION_S, 60) : C.MAX_SPEED_KMH  // duration は実用域 60s に丸め
-    const step = isDuration ? 0.5 : 1
+    // 数値直接入力 / ステッパー: schema の全域 (duration なら 0.1〜600 sec、speed なら 1〜200 km/h)
+    const numMin = isDuration ? C.MIN_DURATION_S : C.MIN_SPEED_KMH
+    const numMax = isDuration ? C.MAX_DURATION_S : C.MAX_SPEED_KMH
+    // スライダー専用: 実用域に絞る (duration は 0.1〜10 sec、speed は schema 通り)
+    const sliderMin = isDuration ? 0.1 : C.MIN_SPEED_KMH
+    const sliderMax = isDuration ? 10 : C.MAX_SPEED_KMH
+    // step は両者で共通: duration 0.1 で細かく、speed 1 km/h
+    const step = isDuration ? 0.1 : 1
+    // 後方互換 (旧コードがあれば)
+    const min = numMin
+    const max = numMax
     const value = isDuration ? (seg.durationS ?? C.DEFAULT_DURATION_S) : (seg.speedKmh ?? 80)
     const unit = isDuration ? '秒' : 'km/h'
     const key = isDuration ? 'durationS' : 'speedKmh'
+    // スライダーには現在値が範囲外（10超）でも入れられるよう、value を一旦 sliderMax で clamp
+    const sliderValue = Math.min(sliderMax, Math.max(sliderMin, Number(value) || sliderMin))
+    // ラベル表示: スライダーの実用域を主表示、数値入力でさらに広い範囲を打てる旨を補足
+    const rangeLabel = isDuration
+      ? `スライド ${sliderMin}〜${sliderMax} 秒（数値入力で ${numMax} まで）`
+      : `${sliderMin}〜${sliderMax} ${unit}`
     return `
       <div class="seg-row">
         <div class="seg-row__head">
           <span class="seg-label">${_esc(seg.from)} → ${_esc(seg.to)}</span>
-          <span class="numfield-range">${min}〜${max} ${unit}</span>
+          <span class="numfield-range">${rangeLabel}</span>
           <div class="unit-pill-group" role="tablist" aria-label="区間タイミング単位">
             <button class="unit-pill${isDuration ? ' active' : ''}"
                     role="tab" aria-selected="${isDuration}"
@@ -433,14 +455,14 @@ export function mountEditPane(container, { state, actions, subscribe }) {
         </div>
         <div class="numfield-stepper">
           <button type="button" class="num-step" data-act-step="segment" data-key="${key}" data-idx="${idx}" data-step="${-step}" aria-label="${unit} を ${step} 減らす">−</button>
-          <input type="number" class="numfield-num" min="${min}" max="${max}" step="${step}" value="${value}"
+          <input type="number" class="numfield-num" min="${numMin}" max="${numMax}" step="${step}" value="${value}"
                  data-act-num="segment" data-key="${key}" data-idx="${idx}"
                  inputmode="decimal" enterkeyhint="done"
                  aria-label="${unit} 直接入力">
           <span class="numfield-unit">${unit}</span>
           <button type="button" class="num-step" data-act-step="segment" data-key="${key}" data-idx="${idx}" data-step="${step}" aria-label="${unit} を ${step} 増やす">＋</button>
         </div>
-        <input type="range" class="numfield-slider" min="${min}" max="${max}" step="${step}" value="${value}"
+        <input type="range" class="numfield-slider" min="${sliderMin}" max="${sliderMax}" step="${step}" value="${sliderValue}"
                data-act="segment" data-key="${key}" data-idx="${idx}"
                aria-label="${unit} スライダー">
         <div class="numfield-meta">

@@ -145,7 +145,8 @@ describe('validateComposition', () => {
 
   it('rejects durationS out of range', () => {
     const c = JSON.parse(JSON.stringify(VALID))
-    c.segments = [{ from: 'A', to: 'B', durationS: 0.1 }]
+    // MIN_DURATION_S = 0.1 を下回る値で reject されることを確認
+    c.segments = [{ from: 'A', to: 'B', durationS: 0.05 }]
     expect(() => validateComposition(c)).toThrow(/durationS/)
   })
 })

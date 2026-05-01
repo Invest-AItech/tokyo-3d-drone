@@ -91,7 +91,7 @@ class TestSegment:
 
     def test_duration_below_min_rejected(self):
         with pytest.raises(ValidationError):
-            Segment(**{"from": "A", "to": "B", "durationS": 0.1})
+            Segment(**{"from": "A", "to": "B", "durationS": 0.05})
 
     def test_duration_above_max_rejected(self):
         with pytest.raises(ValidationError):
