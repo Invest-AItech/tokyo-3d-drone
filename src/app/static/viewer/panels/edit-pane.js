@@ -29,6 +29,11 @@ export function mountEditPane(container, { state, actions, subscribe }) {
     return String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
   }
 
+  // 選択点が変わった瞬間だけ POINTS リスト内の選択行をスクロール表示する。
+  // render 毎に scrollIntoView を呼ぶと、ステッパー (+/-) の連続発火でパネル全体が
+  // トップへ戻されるバグになるため、selectedPointId の遷移検知で 1 度だけ呼ぶ。
+  let lastSelectedId = null
+
   // Stepper の長押し連続用タイマ。**render の外側に置く**（render ごとのクロージャで作ると、
   // 再描画後に旧クロージャの timer が止められなくなり、ボタンが「勝手に動き続ける」バグになる）。
   // また、pointerup は **document に bind** することで、applyStep の setState で再描画 →
@@ -351,14 +356,28 @@ export function mountEditPane(container, { state, actions, subscribe }) {
     // i18n: render 後に data-i18n 属性を再適用
     if (window.i18n?.applyToDom) window.i18n.applyToDom()
 
-    // 選択点が POINTS リストの可視範囲内に来るよう自動スクロール
-    // （リストが独立スクロール領域になったため、選択行が画面外にあると編集しづらい）
-    if (s.selectedPointId) {
+    // 選択点が変わった時だけ POINTS リスト内で行を可視範囲へ
+    // （render 毎に呼ぶと、+/- ステッパーで再描画されるたびにパネルが top へ戻るバグになるため、
+    //  selectedPointId の遷移を検知して 1 度だけ実行）
+    if (s.selectedPointId && s.selectedPointId !== lastSelectedId) {
       const selRow = container.querySelector('.point-row.sel')
       if (selRow && typeof selRow.scrollIntoView === 'function') {
-        selRow.scrollIntoView({ block: 'nearest', behavior: 'auto' })
+        // POINTS リスト (`.point-list`) は独立スクロール領域なので、
+        // そのコンテナの中だけで動かす（外側 `.edit` には触らない）
+        const list = selRow.closest('.point-list')
+        if (list) {
+          // 選択行が list の表示範囲外なら、list 内で必要分だけスクロール
+          const rowTop = selRow.offsetTop - list.offsetTop
+          const rowBottom = rowTop + selRow.offsetHeight
+          if (rowTop < list.scrollTop) {
+            list.scrollTop = rowTop
+          } else if (rowBottom > list.scrollTop + list.clientHeight) {
+            list.scrollTop = rowBottom - list.clientHeight
+          }
+        }
       }
     }
+    lastSelectedId = s.selectedPointId
   }
 
   function _numField(scope, id, key, label, value, min, max, step) {
