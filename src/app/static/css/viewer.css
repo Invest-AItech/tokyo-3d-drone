@@ -394,92 +394,264 @@ body[data-page="creator"][data-viewer-only="true"] #place-search-pane {
 .point-row button:disabled { opacity: 0.3; cursor: not-allowed; }
 .hint { color: var(--text-dim); font-size: 0.85em; }
 
-/* Numfield: ラベル → スライダー + 数値直接入力 → 範囲・→All ボタンの 3 段構成
- * モバイルでもスライダーだけだと精密調整できないため、横並びで <input type="number"> を併設。
- * 数値入力にはキーボード（数字パッド）が出る inputmode="decimal" を指定。
- * iOS Safari の auto-zoom 防止に font-size: 16px を必須化。 */
+/* ============================================================
+ * Numfield: モバイルファースト numeric editor
+ * 構造:
+ *   .numfield-head     [ラベル ............... 1〜200]
+ *   .numfield-stepper  [−][   80   ][＋]
+ *   .numfield-slider   [━━━━━━━━●━━━━]
+ *   .numfield-meta     [→ All]
+ *
+ * 設計方針:
+ * - 大型タップターゲット (44px min) で指で押しやすく
+ * - 中央の <input type="number"> はタップで全選択 → すぐ新値入力
+ * - ± Stepper で 1 タップ増減 + 長押しで連続増減
+ * - スライダーは thumb を 24-28px に拡大（iOS/Android 標準より大きく）
+ * - iOS Safari auto-zoom 抑止に font-size: 16px 維持
+ * ============================================================ */
+
 .numfield {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.4rem 0;
+  gap: 0.4rem;
+  padding: 0.55rem 0;
   font-size: 0.85em;
   border-bottom: 1px dotted rgba(31, 41, 55, 0.6);
 }
 .numfield:last-child { border-bottom: none; }
-.numfield-label { color: var(--text-dim); font-weight: 500; }
-.numfield-row {
+
+.numfield-head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 0.5rem;
 }
-.numfield-slider {
-  flex: 1 1 auto;
-  min-width: 0;
-  accent-color: var(--accent-a);
+.numfield-label {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 1em;
+}
+.numfield-range {
+  font-family: var(--mono);
+  color: var(--text-dim);
+  font-size: 0.78em;
+}
+
+/* Stepper row: [−] [number] [unit] [＋] */
+.numfield-stepper {
+  display: flex;
+  align-items: stretch;
+  gap: 0.4rem;
+}
+.num-step {
+  flex: 0 0 auto;
+  width: 44px;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent-a);
+  background: rgba(232, 121, 249, 0.08);
+  border: 1px solid rgba(232, 121, 249, 0.4);
+  border-radius: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: manipulation;
+  transition: background 0.1s ease, border-color 0.1s ease, transform 0.05s ease;
+}
+.num-step:hover { background: rgba(232, 121, 249, 0.18); }
+.num-step:active {
+  background: var(--accent-a);
+  color: var(--bg);
+  transform: scale(0.96);
+}
+.num-step:focus-visible {
+  outline: 2px solid var(--accent-a);
+  outline-offset: 2px;
 }
 .numfield-num {
-  flex: 0 0 auto;
-  width: 4.5em;
-  padding: 0.35rem 0.4rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.5rem 0.6rem;
   background: var(--bg-pane);
   color: var(--accent-a);
   border: 1px solid var(--border-strong);
-  border-radius: 3px;
+  border-radius: 8px;
   font-family: var(--mono);
-  font-size: 16px;            /* iOS auto-zoom 防止に最低 16px */
-  text-align: right;
+  font-size: 18px;          /* タップしやすく見やすく。iOS auto-zoom 防止の最低 16px もクリア */
+  font-weight: 700;
+  text-align: center;
   -moz-appearance: textfield;
+  letter-spacing: 0.02em;
 }
 .numfield-num:focus {
   outline: none;
   border-color: var(--accent-a);
-  box-shadow: 0 0 6px rgba(232, 121, 249, 0.4);
+  box-shadow: 0 0 0 3px rgba(232, 121, 249, 0.18);
 }
-/* スピンボタン (上下矢印) はモバイルで邪魔なので非表示 */
 .numfield-num::-webkit-outer-spin-button,
 .numfield-num::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 .numfield-unit {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 0 0.4rem;
   font-family: var(--mono);
   color: var(--text-dim);
   font-size: 0.85em;
-  flex: 0 0 auto;
 }
+
+/* Slider: thumb を大きくしてタッチしやすく */
+.numfield-slider {
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  accent-color: var(--accent-a);
+  cursor: pointer;
+}
+.numfield-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  background: linear-gradient(90deg, var(--border-strong), rgba(232, 121, 249, 0.3));
+  border-radius: 3px;
+}
+.numfield-slider::-moz-range-track {
+  height: 6px;
+  background: linear-gradient(90deg, var(--border-strong), rgba(232, 121, 249, 0.3));
+  border-radius: 3px;
+}
+.numfield-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  margin-top: -10px;
+  background: var(--accent-a);
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--accent-a);
+  cursor: pointer;
+}
+.numfield-slider::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  background: var(--accent-a);
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--accent-a);
+  cursor: pointer;
+}
+.numfield-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 0 4px rgba(232, 121, 249, 0.35);
+}
+
 .numfield-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 0.5rem;
-  font-size: 0.75em;
-}
-.numfield-range {
-  font-family: var(--mono);
-  color: var(--text-dim);
 }
 
 /* 後方互換: 旧 .numfield-value（残存箇所があれば） */
 .numfield-value { font-family: var(--mono); color: var(--accent-a); text-align: right; }
 
+/* ----------------------------------------------------------------
+ * Segment row：構造は numfield と同じ + コンパクトな unit pill
+ * 区間切替 (秒/速度) は icon のみのピル 2 個に縮小。スライダー幅を最大化。
+ * ---------------------------------------------------------------- */
 .seg-row {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.5rem 0;
+  gap: 0.4rem;
+  padding: 0.6rem 0;
   font-size: 0.85em;
   border-bottom: 1px dotted rgba(31, 41, 55, 0.6);
 }
 .seg-row__head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
-.seg-label { font-family: var(--mono); color: var(--accent-b); }
+.seg-label {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--accent-b);
+  font-size: 1em;
+}
 .seg-row .numfield-slider { accent-color: var(--accent-b); }
+.seg-row .numfield-slider::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg, var(--border-strong), rgba(232, 121, 249, 0.3));
+}
+.seg-row .numfield-slider::-moz-range-track {
+  background: linear-gradient(90deg, var(--border-strong), rgba(232, 121, 249, 0.3));
+}
 .seg-row .numfield-num { color: var(--accent-b); }
+.seg-row .num-step {
+  color: var(--accent-b);
+  background: rgba(232, 121, 249, 0.08);
+  border-color: rgba(232, 121, 249, 0.4);
+}
+.seg-row .num-step:active {
+  background: var(--accent-b);
+  color: var(--bg);
+}
+
+/* Compact unit pill toggle (icon-only). 旧 .unit-toggle-btn の幅食い問題を解決 */
+.unit-pill-group {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-pane);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+.unit-pill {
+  width: 36px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: transparent;
+  color: var(--text-dim);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.unit-pill:hover { color: var(--accent-a); }
+.unit-pill.active {
+  background: var(--accent-a);
+  color: var(--bg);
+}
+.seg-row .unit-pill.active { background: var(--accent-b); }
+.unit-pill:focus-visible {
+  outline: 2px solid var(--accent-a);
+  outline-offset: 2px;
+}
+
+/* モバイル微調整: ステッパー表示を維持しつつ、極小画面でも崩れない */
+@media (max-width: 600px) {
+  .numfield, .seg-row { padding: 0.7rem 0; }
+  .num-step { width: 48px; min-height: 48px; font-size: 24px; }  /* 指タップ最適化 */
+  .numfield-num { font-size: 18px; padding: 0.6rem 0.5rem; }
+  .numfield-slider { height: 40px; }
+  .numfield-slider::-webkit-slider-thumb { width: 30px; height: 30px; margin-top: -12px; }
+  .numfield-slider::-moz-range-thumb { width: 30px; height: 30px; }
+  .unit-pill { width: 40px; height: 36px; font-size: 18px; }
+}
 
 .select-field {
   display: grid;

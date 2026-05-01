@@ -150,6 +150,13 @@ export function mountEditPane(container, { state, actions, subscribe }) {
           actions.updateSegment(Number(el.dataset.idx), { [key]: value })
         }
       })
+      // タップで全選択 → そのまま新しい数値を打てる（モバイル UX 改善）
+      el.addEventListener('focus', () => {
+        // 次の tick まで待たないと iOS で select が無効化されることがある
+        requestAnimationFrame(() => {
+          try { el.select() } catch (_) { /* ignore */ }
+        })
+      })
       // blur 時に範囲外なら clamp して再描画を促す
       el.addEventListener('blur', () => {
         if (el.value === '') return
@@ -161,6 +168,73 @@ export function mountEditPane(container, { state, actions, subscribe }) {
         if (clamped !== v) {
           el.value = String(clamped)
           el.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+      })
+    })
+
+    // ± Stepper ボタン（タップで step 量だけ増減。長押しで連続増減）
+    // 連続実行は pointerdown で開始、pointerup/cancel/leave で停止。
+    let stepRepeatDelay = null
+    let stepRepeatTimer = null
+    const stopStepRepeat = () => {
+      if (stepRepeatDelay) { clearTimeout(stepRepeatDelay); stepRepeatDelay = null }
+      if (stepRepeatTimer) { clearInterval(stepRepeatTimer); stepRepeatTimer = null }
+    }
+    container.querySelectorAll('button.num-step').forEach(btn => {
+      const applyStep = () => {
+        const scope = btn.dataset.actStep
+        const key = btn.dataset.key
+        const delta = Number(btn.dataset.step)
+        if (!Number.isFinite(delta)) return
+
+        // 現在値を読む
+        let current
+        if (scope === 'point') {
+          const p = s.composition.points.find(pt => pt.id === btn.dataset.id)
+          if (!p) return
+          current = Number(p[key] ?? 0)
+        } else if (scope === 'global') {
+          current = Number(s.composition.global[key] ?? 0)
+        } else if (scope === 'segment') {
+          const seg = s.composition.segments[Number(btn.dataset.idx)]
+          if (!seg) return
+          current = Number(seg[key] ?? 0)
+        }
+        if (!Number.isFinite(current)) return
+
+        // 新値を min/max 内に clamp
+        const sibling = btn.parentElement.querySelector('input[type="number"]')
+        const min = sibling ? Number(sibling.min) : -Infinity
+        const max = sibling ? Number(sibling.max) : Infinity
+        // step が小数の場合の浮動小数誤差を抑制（小数 2 桁まで）
+        const next = Math.min(max, Math.max(min, Math.round((current + delta) * 100) / 100))
+        if (next === current) return
+
+        if (scope === 'point') {
+          actions.updatePoint(btn.dataset.id, { [key]: next })
+        } else if (scope === 'global') {
+          actions.updateGlobal({ [key]: next })
+        } else if (scope === 'segment') {
+          actions.updateSegment(Number(btn.dataset.idx), { [key]: next })
+        }
+      }
+      // 長押し連続: 350ms 後に開始、80ms 間隔
+      btn.addEventListener('pointerdown', e => {
+        e.preventDefault()
+        applyStep()  // 即座に 1 回
+        stopStepRepeat()
+        stepRepeatDelay = setTimeout(() => {
+          stepRepeatTimer = setInterval(applyStep, 80)
+        }, 350)
+      })
+      btn.addEventListener('pointerup', stopStepRepeat)
+      btn.addEventListener('pointercancel', stopStepRepeat)
+      btn.addEventListener('pointerleave', stopStepRepeat)
+      // キーボード操作（Enter/Space で 1 回）
+      btn.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          applyStep()
         }
       })
     })
@@ -267,20 +341,25 @@ export function mountEditPane(container, { state, actions, subscribe }) {
   function _numField(scope, id, key, label, value, min, max, step) {
     const v = (value == null) ? '' : value
     const showAll = scope === 'point'
+    // step を「タップで増減する量」として使う。整数 step なら 1、0.5 step なら 0.5 など。
     return `
       <label class="numfield">
-        <span class="numfield-label">${label}</span>
-        <div class="numfield-row">
-          <input type="range" class="numfield-slider" min="${min}" max="${max}" step="${step}" value="${v}"
-                 data-act="${scope}" data-key="${key}" data-id="${id}">
+        <div class="numfield-head">
+          <span class="numfield-label">${label}</span>
+          <span class="numfield-range">${min}〜${max}</span>
+        </div>
+        <div class="numfield-stepper">
+          <button type="button" class="num-step" data-act-step="${scope}" data-key="${key}" data-id="${id}" data-step="${-step}" aria-label="${label} を ${step} 減らす">−</button>
           <input type="number" class="numfield-num" min="${min}" max="${max}" step="${step}" value="${v}"
                  data-act-num="${scope}" data-key="${key}" data-id="${id}"
-                 inputmode="decimal" aria-label="${label} 直接入力">
+                 inputmode="decimal" enterkeyhint="done"
+                 aria-label="${label} 直接入力">
+          <button type="button" class="num-step" data-act-step="${scope}" data-key="${key}" data-id="${id}" data-step="${step}" aria-label="${label} を ${step} 増やす">＋</button>
         </div>
-        <div class="numfield-meta">
-          <span class="numfield-range">${min} 〜 ${max}</span>
-          ${showAll ? `<button class="apply-all-btn" data-act="apply-all-point" data-key="${key}" title="この値を全点に反映" data-i18n="creator.applyAll">→ All</button>` : ''}
-        </div>
+        <input type="range" class="numfield-slider" min="${min}" max="${max}" step="${step}" value="${v}"
+               data-act="${scope}" data-key="${key}" data-id="${id}"
+               aria-label="${label} スライダー">
+        ${showAll ? `<div class="numfield-meta"><button class="apply-all-btn" data-act="apply-all-point" data-key="${key}" title="この値を全点に反映" data-i18n="creator.applyAll">→ All</button></div>` : ''}
       </label>
     `
   }
@@ -298,27 +377,31 @@ export function mountEditPane(container, { state, actions, subscribe }) {
       <div class="seg-row">
         <div class="seg-row__head">
           <span class="seg-label">${_esc(seg.from)} → ${_esc(seg.to)}</span>
-          <div class="unit-toggle" role="tablist" aria-label="区間タイミング単位">
-            <button class="unit-toggle-btn${isDuration ? ' active' : ''}"
+          <span class="numfield-range">${min}〜${max} ${unit}</span>
+          <div class="unit-pill-group" role="tablist" aria-label="区間タイミング単位">
+            <button class="unit-pill${isDuration ? ' active' : ''}"
                     role="tab" aria-selected="${isDuration}"
                     data-act="seg-unit" data-idx="${idx}" data-mode="duration"
-                    title="区間の所要時間を秒で指定">🕐 秒</button>
-            <button class="unit-toggle-btn${!isDuration ? ' active' : ''}"
+                    title="所要時間 (秒) で指定" aria-label="秒モード">🕐</button>
+            <button class="unit-pill${!isDuration ? ' active' : ''}"
                     role="tab" aria-selected="${!isDuration}"
                     data-act="seg-unit" data-idx="${idx}" data-mode="speed"
-                    title="区間の巡航速度を km/h で指定">🛞 速度</button>
+                    title="巡航速度 (km/h) で指定" aria-label="速度モード">🛞</button>
           </div>
         </div>
-        <div class="numfield-row">
-          <input type="range" class="numfield-slider" min="${min}" max="${max}" step="${step}" value="${value}"
-                 data-act="segment" data-key="${key}" data-idx="${idx}">
+        <div class="numfield-stepper">
+          <button type="button" class="num-step" data-act-step="segment" data-key="${key}" data-idx="${idx}" data-step="${-step}" aria-label="${unit} を ${step} 減らす">−</button>
           <input type="number" class="numfield-num" min="${min}" max="${max}" step="${step}" value="${value}"
                  data-act-num="segment" data-key="${key}" data-idx="${idx}"
-                 inputmode="decimal" aria-label="${unit} 直接入力">
+                 inputmode="decimal" enterkeyhint="done"
+                 aria-label="${unit} 直接入力">
           <span class="numfield-unit">${unit}</span>
+          <button type="button" class="num-step" data-act-step="segment" data-key="${key}" data-idx="${idx}" data-step="${step}" aria-label="${unit} を ${step} 増やす">＋</button>
         </div>
+        <input type="range" class="numfield-slider" min="${min}" max="${max}" step="${step}" value="${value}"
+               data-act="segment" data-key="${key}" data-idx="${idx}"
+               aria-label="${unit} スライダー">
         <div class="numfield-meta">
-          <span class="numfield-range">${min} 〜 ${max} ${unit}</span>
           <button class="apply-all-btn" data-act="apply-all-segment" data-key="${key}" data-idx="${idx}"
                   title="この値を全区間に反映" data-i18n="creator.applyAll">→ All</button>
         </div>
