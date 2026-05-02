@@ -274,7 +274,7 @@
       </div>
 
       <div class="hero-cta">
-        <a id="launch-btn" class="btn btn-primary" href="https://tokyo-3d-drone-tcus2zi5tq-an.a.run.app/viewer/">
+        <a id="launch-btn" class="btn btn-primary" href="https://tokyo-3d-drone-tcus2zi5tq-an.a.run.app/viewer/?utm_source=firebase&utm_medium=landing&utm_campaign=launch_app">
           <span data-i18n="hero.ctaPrimary">▶ ビューアを開く</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
         </a>
@@ -799,19 +799,41 @@
     </div>
   </footer>
 
-  <!-- "アプリを試す" 押下時の起動中... 表示 (CLAUDE.md 準拠の体感対策) -->
+  <!-- "アプリを試す" 押下時の起動中... 表示 + GA4 events (launch_app, lang_toggle) -->
   <script>
     (function () {
-      var btn = document.getElementById('launch-btn');
-      if (!btn) return;
-      btn.addEventListener('click', function () {
-        btn.setAttribute('aria-busy', 'true');
-        var span = btn.querySelector('span');
-        if (!span) return;
-        var loc = (window.i18n && typeof window.i18n.getLocale === 'function')
+      function getLoc() {
+        return (window.i18n && typeof window.i18n.getLocale === 'function')
           ? window.i18n.getLocale() : 'ja';
-        span.textContent = loc === 'en' ? 'Launching...' : '起動中...';
-      });
+      }
+      var btn = document.getElementById('launch-btn');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          if (typeof window.gtag === 'function') {
+            window.gtag('event', 'launch_app', {
+              app: 'tokyo-3d-drone',
+              destination: 'cloud_run_viewer',
+              lang: getLoc()
+            });
+          }
+          btn.setAttribute('aria-busy', 'true');
+          var span = btn.querySelector('span');
+          if (!span) return;
+          span.textContent = getLoc() === 'en' ? 'Launching...' : '起動中...';
+        });
+      }
+      // lang_toggle event via i18n.onChange (after i18n init resolves)
+      if (window.__i18nReady && window.__i18nReady.then) {
+        window.__i18nReady.then(function () {
+          if (window.i18n && typeof window.i18n.onChange === 'function') {
+            window.i18n.onChange(function (locale) {
+              if (typeof window.gtag === 'function') {
+                window.gtag('event', 'lang_toggle', { to: locale });
+              }
+            });
+          }
+        });
+      }
     })();
   </script>
 
