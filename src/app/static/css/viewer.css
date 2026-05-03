@@ -688,8 +688,91 @@ body[data-page="creator"][data-viewer-only="true"] #place-search-pane {
   transition: opacity 0.3s;
   z-index: 1000;
   max-width: 80vw;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 #toast.show { opacity: 1; pointer-events: auto; }
+.toast-cta {
+  background: var(--accent-a);
+  color: var(--bg);
+  border: none;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 0.85em;
+  padding: 0.25rem 0.7rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+.toast-cta:hover { opacity: 0.85; }
+.toast-cta:focus-visible {
+  outline: 2px solid var(--bg);
+  outline-offset: 2px;
+}
+
+/* Preview tiles ボタン: タイル未取得時にパルスで目立たせる */
+@keyframes tiles-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232,121,249,0.5); }
+  50%       { box-shadow: 0 0 0 6px rgba(232,121,249,0); }
+}
+button[data-action="preview-tiles"][data-tiles-state="needed"] {
+  color: var(--accent-a);
+  border-color: var(--accent-a);
+  background: rgba(232,121,249,0.10);
+  animation: tiles-pulse 2s ease-in-out infinite;
+}
+button[data-action="preview-tiles"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  animation: none;
+}
+
+/* ボタングループとセパレーター */
+.btn-group { display: inline-flex; gap: 0.4rem; align-items: center; flex-shrink: 0; }
+.btn-group-sep {
+  width: 1px; height: 1.2em;
+  background: var(--border-strong);
+  margin: 0 0.1rem;
+  flex-shrink: 0;
+  align-self: center;
+}
+@media (max-width: 640px) {
+  .topbar .actions { flex-wrap: nowrap; }
+}
+
+/* ウェルカムカード */
+#viewer-pane { position: relative; }
+#welcome-card {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 600;
+  pointer-events: auto;
+}
+.welcome-card__inner {
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent-a);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  width: min(360px, 90vw);
+  text-align: center;
+  box-shadow: var(--hud-glow);
+}
+.welcome-card__title { font-weight: 700; font-size: 1.05em; margin: 0 0 0.5rem; }
+.welcome-card__body  { font-size: 0.9em; color: var(--text-dim); margin: 0 0 1rem; line-height: 1.6; }
+.welcome-card__actions { display: flex; gap: 0.6rem; justify-content: center; }
+.welcome-card__actions button {
+  font-family: var(--mono); font-size: 0.85em;
+  padding: 0.45rem 0.9rem; border-radius: 4px; cursor: pointer;
+  border: 1px solid var(--border-strong);
+}
+#wc-load {
+  background: var(--accent-a); color: var(--bg);
+  border-color: var(--accent-a); font-weight: 700;
+}
+#wc-skip { background: var(--bg-pane); color: var(--text-dim); }
+#wc-skip:hover { border-color: var(--accent-a); color: var(--text); }
 
 /* Spec page */
 body[data-page="creator-spec"] {

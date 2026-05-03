@@ -70,8 +70,8 @@ export function mountEditPane(container, { state, actions, subscribe }) {
 
     container.innerHTML = `
       <header class="pane-header">
-        <div class="pane-header__title" data-i18n="creator.paneEditTitle">編集パネル</div>
-        <div class="pane-header__hint" data-i18n="creator.paneEditHint">点をクリックして個別編集 · → All で全点に一括反映</div>
+        <div class="pane-header__title" data-i18n="creator.paneEditTitle">② カメラ設定</div>
+        <div class="pane-header__hint" data-i18n="creator.paneEditHint">点を選択して高度・ピッチ・速さを調整</div>
       </header>
       <div class="edit">
         <section class="points-section">

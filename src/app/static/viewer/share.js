@@ -52,6 +52,20 @@ export function showToast(text, ms = 4000) {
   setTimeout(() => el.classList.remove('show'), ms)
 }
 
+export function showToastWithCta(text, ctaLabel, ctaFn, ms = 6000) {
+  const el = document.getElementById('toast')
+  if (!el) return
+  el.innerHTML = `<span>${text}</span><button class="toast-cta">${ctaLabel}</button>`
+  el.classList.add('show')
+  const timer = setTimeout(() => { el.classList.remove('show'); el.textContent = '' }, ms)
+  el.querySelector('.toast-cta').addEventListener('click', () => {
+    clearTimeout(timer)
+    el.classList.remove('show')
+    el.textContent = ''
+    ctaFn()
+  })
+}
+
 /**
  * reCAPTCHA Enterprise トークンを取得。
  * site key が未設定なら 'dev' を返す（dev 環境用フォールバック）。

@@ -44,6 +44,8 @@ const state = {
   previewTilesTrigger: 0,
   showPolyline: _readShowPolyline(),
   viewerOnly: _readViewerOnly(),
+  tilesLoaded: false,
+  tilesLoading: false,
 }
 
 // Initial body data attribute for viewerOnly (CSS toggles layout based on it)
@@ -61,6 +63,8 @@ function setState(updater) {
   if ('previewTilesTrigger' in updater) state.previewTilesTrigger = updater.previewTilesTrigger
   if ('showPolyline' in updater) state.showPolyline = updater.showPolyline
   if ('viewerOnly' in updater) state.viewerOnly = updater.viewerOnly
+  if ('tilesLoaded' in updater) state.tilesLoaded = updater.tilesLoaded
+  if ('tilesLoading' in updater) state.tilesLoading = updater.tilesLoading
   for (const s of subscribers) s(state)
 }
 
@@ -98,7 +102,8 @@ const actions = {
   },
   loadComposition: comp => {
     validateComposition(comp)
-    setState({ composition: comp, selectedPointId: comp.points[0]?.id ?? null })
+    setState({ composition: comp, selectedPointId: comp.points[0]?.id ?? null,
+               tilesLoaded: false, tilesLoading: false })
   },
   play: ({ fromPointId = null } = {}) => setState({ isPlaying: true, playStartedFromPointId: fromPointId }),
   stop: () => setState({ isPlaying: false, playStartedFromPointId: null }),
@@ -108,12 +113,14 @@ const actions = {
   applyToAllSegments: (key, value) => setState({ composition: applyToAllSegments(state.composition, key, value) }),
   applyAllPointParams: (sourcePoint) => setState({ composition: applyAllPointParams(state.composition, sourcePoint) }),
   applyAllSegmentParams: (sourceSegment) => setState({ composition: applyAllSegmentParams(state.composition, sourceSegment) }),
-  triggerPreviewTiles: () => setState({ previewTilesTrigger: Date.now() }),
+  triggerPreviewTiles: () => setState({ previewTilesTrigger: Date.now(), tilesLoading: true }),
   togglePolyline: () => {
     const next = !state.showPolyline
     _writeShowPolyline(next)
     setState({ showPolyline: next })
   },
+  _setTilesLoaded: (v) => setState({ tilesLoaded: v }),
+  _setTilesLoading: (v) => setState({ tilesLoading: v }),
   toggleViewerOnly: () => {
     const next = !state.viewerOnly
     _writeViewerOnly(next)
@@ -164,6 +171,36 @@ if (urlId) {
   loadCompositionById(urlId)
     .then(c => actions.loadComposition(c))
     .catch(err => console.warn('failed to load composition by id:', err))
+}
+
+// 初回訪問かつ ?id= なし → ウェルカムカードを表示（スキップ or サンプルロード を選べる）
+if (!urlId && !localStorage.getItem('drone_welcomed')) {
+  _showWelcomeCard(actions)
+}
+
+function _showWelcomeCard(actions) {
+  const card = document.createElement('div')
+  card.id = 'welcome-card'
+  card.innerHTML = `
+    <div class="welcome-card__inner">
+      <p class="welcome-card__title">🚁 Tokyo 3D Drone へようこそ</p>
+      <p class="welcome-card__body">まずサンプルを見てみますか？<br>東京スカイツリーの 3D ドローン飛行をすぐ体験できます。</p>
+      <div class="welcome-card__actions">
+        <button id="wc-load">📂 サンプルを見る</button>
+        <button id="wc-skip">自分で設定する</button>
+      </div>
+    </div>
+  `
+  document.getElementById('viewer-pane').appendChild(card)
+  const dismiss = () => { card.remove(); localStorage.setItem('drone_welcomed', '1') }
+  document.getElementById('wc-load').onclick = () => {
+    fetch('/static/viewer/samples/01-skytree.json', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(c => actions.loadComposition(c))
+      .catch(() => {})
+    dismiss()
+  }
+  document.getElementById('wc-skip').onclick = dismiss
 }
 
 // mobile bottom tabs

@@ -1,13 +1,14 @@
 // Map Pane パネル
 // Leaflet ベース: OSM タイル + クリックで点追加 + マーカードラッグ + ポリライン描画
+import { showToastWithCta } from '../share.js'
 const TOKYO_CENTER = [35.6812, 139.7671]
 const DEFAULT_ZOOM = 14
 
 export function mountMapPane(container, { state, actions, subscribe }) {
   container.innerHTML = `
     <header class="pane-header">
-      <div class="pane-header__title" data-i18n="creator.paneMapTitle">2D マップ</div>
-      <div class="pane-header__hint" data-i18n="creator.paneMapHint">クリックで点を追加 · ドラッグで移動 · 右クリックで削除</div>
+      <div class="pane-header__title" data-i18n="creator.paneMapTitle">① 経路設定</div>
+      <div class="pane-header__hint" role="status" aria-live="polite">クリックで飛行ルートの点を追加（最大 50 点）</div>
       <div class="pane-header__actions">
         <button data-action="undo-last-point" class="pane-toolbar-btn" title="直前に追加した点を削除" data-i18n="creator.undoLastPoint">⌫ 直前を削除</button>
       </div>
@@ -43,9 +44,11 @@ export function mountMapPane(container, { state, actions, subscribe }) {
         m.on('click', () => actions.selectPoint(p.id))
         m.on('contextmenu', (ev) => {
           ev.originalEvent.preventDefault()
-          if (confirm(`点 ${p.id} を削除しますか？`)) {
-            actions.removePoint(p.id)
-          }
+          showToastWithCta(
+            `点 ${p.id} を削除しますか？`,
+            '✓ 削除',
+            () => actions.removePoint(p.id)
+          )
         })
         m.on('dragend', () => {
           const ll = m.getLatLng()
@@ -94,8 +97,21 @@ export function mountMapPane(container, { state, actions, subscribe }) {
     }
   }
 
+  const hintEl = container.querySelector('.pane-header__hint')
+
   subscribe(s => {
     syncMarkers(s.composition)
     highlightSelection(s.selectedPointId)
+    // 点数に応じて動的ヒントを更新
+    if (hintEl) {
+      const n = s.composition.points.length
+      if (n === 0) {
+        hintEl.textContent = 'クリックで飛行ルートの点を追加（最大 50 点）'
+      } else if (n === 1) {
+        hintEl.textContent = 'あと 1 点以上追加すると飛行ルートが確定します'
+      } else {
+        hintEl.textContent = `${n} 点 · ② 右パネルでカメラ高度を調整 → ▶ Play`
+      }
+    }
   })
 }

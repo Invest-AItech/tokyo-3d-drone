@@ -6,7 +6,7 @@
 // - state.isPlaying === true で precomputeComposition + computeFrameComposition を毎 tick 呼んで Play 再生
 // - Play 完了で自動 actions.stop()
 import { precomputeComposition, computeFrameComposition } from '../../js/camera-pure.js'
-import { fetchPreviewTileset } from '../share.js'
+import { fetchPreviewTileset, showToast } from '../share.js'
 
 const Cesium = window.Cesium
 
@@ -196,6 +196,7 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
       const meta = await r.json()
       currentTileset = await Cesium.Cesium3DTileset.fromUrl(meta.tileset_url)
       viewer.scene.primitives.add(currentTileset)
+      actions._setTilesLoaded(true)
     } catch (e) {
       console.error('[creator viewer] composition tileset load failed', e)
     }
@@ -219,8 +220,13 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
       previewTileset = await Cesium.Cesium3DTileset.fromUrl(meta.tileset_url)
       viewer.scene.primitives.add(previewTileset)
       viewer.zoomTo(previewTileset)
+      showToast('建物を読み込みました ▶ Play で飛行できます')
+      actions._setTilesLoaded(true)
     } catch (e) {
       console.error('[creator viewer] preview tileset load failed', e)
+      showToast(`建物の読み込みに失敗しました: ${e.message}`)
+    } finally {
+      actions._setTilesLoading(false)
     }
   }
 
@@ -306,5 +312,19 @@ export function mountViewerPane(container, { state, actions, subscribe }) {
       playCtx = null
     }
     lastIsPlaying = s.isPlaying
+
+    // 中央パネルのヒントを状態連動で更新
+    const viewerHintEl = container.querySelector('.pane-header__hint')
+    if (viewerHintEl) {
+      if (s.isPlaying) {
+        viewerHintEl.textContent = '飛行中... ⏸ Stop で停止'
+      } else if (s.tilesLoading) {
+        viewerHintEl.textContent = '建物データを読込中...'
+      } else if (!s.tilesLoaded) {
+        viewerHintEl.textContent = '🏙️ 建物を読込 → ▶ Play で飛行開始'
+      } else {
+        viewerHintEl.textContent = '▶ Play で飛行開始'
+      }
+    }
   })
 }

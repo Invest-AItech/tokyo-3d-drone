@@ -6,7 +6,7 @@
 // - Reset: 点と区間をクリア（global 設定と地図/3D 視点は維持）
 // - Preview tiles: 保存せずにタイルを取得して 3D Viewer に描画
 // - AI Prompt: ChatGPT / Claude 等に貼るプロンプトをクリップボードコピー
-import { saveAndShare, copyToClipboard, showToast, getRecaptchaToken } from '../share.js'
+import { saveAndShare, copyToClipboard, showToast, showToastWithCta, getRecaptchaToken } from '../share.js'
 import { downloadJson, readJsonFile, exportComposition, importComposition } from '../io.js'
 import { buildAIPrompt } from '../ai-prompt.js'
 
@@ -37,40 +37,74 @@ export function mountTopbar(container, { state, actions, subscribe }) {
       </a>
       <span class="brand" aria-label="tokyo-3d-drone"><span class="brand__seg">tokyo</span><span class="brand__seg">-3d-</span><span class="brand__seg">drone</span></span>
       <div class="actions">
-        <button data-action="play" data-i18n="creator.play">▶ Play</button>
-        <button data-action="stop" data-i18n="creator.stop">⏸ Stop</button>
-        <button data-action="reset" data-i18n="creator.reset" title="点をすべてクリア (global 設定は維持)">⟲ Reset</button>
-        <label class="sample-picker" title="プリセット構図を選択" data-i18n-attr-title="creator.loadSampleHint">
-          <span class="sample-picker__visually-hidden" data-i18n="creator.loadSample">サンプルを読み込む</span>
-          <select data-action="load-sample" class="sample-picker__select" aria-label="サンプル">
-            <option value="" data-i18n="creator.samplePlaceholder">📂 サンプル…</option>
-            ${sampleOptions}
-          </select>
-        </label>
-        <button data-action="preview-tiles" data-i18n="creator.previewTiles">🏙️ Preview tiles</button>
-        <button data-action="save" data-i18n="creator.save">Save &amp; Share</button>
-        <button data-action="export" data-i18n="creator.export">Export JSON</button>
-        <button data-action="import" data-i18n="creator.import">Import JSON</button>
-        <button data-action="ai-prompt" data-i18n="creator.aiPrompt">🤖 AI Prompt</button>
-        <button data-action="toggle-polyline" class="toolbar-btn" aria-pressed="${state.showPolyline}"
-                title="経路の表示/非表示" data-i18n-title="creator.togglePolylineHint"><span data-i18n="creator.togglePolyline">⛓️ 経路</span></button>
-        <button data-action="toggle-viewer-only" class="toolbar-btn" aria-pressed="${state.viewerOnly}"
-                title="3 画面表示／3D だけ表示の切替" data-i18n-attr-title="creator.toggleViewerOnlyHint"><span data-i18n="creator.toggleViewerOnly">🎬 3D のみ</span></button>
-        <input type="file" data-action="import-file" accept="application/json,.json" hidden>
+        <!-- グループA: 再生操作 -->
+        <div class="btn-group">
+          <button data-action="play" data-i18n="creator.play">▶ Play</button>
+          <button data-action="stop" data-i18n="creator.stop">⏸ Stop</button>
+          <button data-action="reset" data-i18n="creator.reset" title="点をすべてクリア (global 設定は維持)">⟲ Reset</button>
+        </div>
+        <div class="btn-group-sep"></div>
+        <!-- グループB: 構図/表示 -->
+        <div class="btn-group">
+          <label class="sample-picker" title="プリセット構図を選択" data-i18n-attr-title="creator.loadSampleHint">
+            <span class="sample-picker__visually-hidden" data-i18n="creator.loadSample">サンプルを読み込む</span>
+            <select data-action="load-sample" class="sample-picker__select" aria-label="サンプル">
+              <option value="" data-i18n="creator.samplePlaceholder">📂 サンプル…</option>
+              ${sampleOptions}
+            </select>
+          </label>
+          <button data-action="preview-tiles" data-tiles-state="needed" title="3D建物データを取得（Play前に必要）">🏙️ 建物を読込</button>
+          <button data-action="toggle-polyline" class="toolbar-btn" aria-pressed="${state.showPolyline}"
+                  title="経路の表示/非表示" data-i18n-title="creator.togglePolylineHint"><span data-i18n="creator.togglePolyline">⛓️ 経路</span></button>
+          <button data-action="toggle-viewer-only" class="toolbar-btn" aria-pressed="${state.viewerOnly}"
+                  title="3 画面表示／3D だけ表示の切替" data-i18n-attr-title="creator.toggleViewerOnlyHint"><span data-i18n="creator.toggleViewerOnly">🎬 3D のみ</span></button>
+        </div>
+        <div class="btn-group-sep"></div>
+        <!-- グループC: データ操作 -->
+        <div class="btn-group">
+          <button data-action="ai-prompt" data-i18n="creator.aiPrompt" title="ChatGPT/Claude/Geminiで経路JSONを生成">🤖 AI Prompt</button>
+          <button data-action="save" data-i18n="creator.save">Save &amp; Share</button>
+          <button data-action="export" data-i18n="creator.export">Export JSON</button>
+          <button data-action="import" data-i18n="creator.import">Import JSON</button>
+        </div>
+        <input type="file" data-action="import-file" accept="application/json,.json" hidden aria-label="JSON ファイルをインポート">
       </div>
     </div>
   `
   // i18n が後から init される場合に再 apply
   if (window.__i18nReady) window.__i18nReady.then(() => window.i18n?.applyToDom?.())
-  container.querySelector('[data-action="play"]').addEventListener('click', () => actions.play())
+
+  const previewTilesBtn = container.querySelector('[data-action="preview-tiles"]')
+
+  container.querySelector('[data-action="play"]').addEventListener('click', () => {
+    const pts = state.composition.points.length
+    if (pts === 0) {
+      showToast('① 左マップをクリックして経路の点を追加してください')
+      return
+    }
+    if (pts < 2) {
+      showToast('点を 2 つ以上追加してから Play してください')
+      return
+    }
+    if (!state.tilesLoaded) {
+      showToastWithCta(
+        '⚠️ 3D建物データが未読込です',
+        '今すぐ 🏙️ 建物を読込',
+        () => { actions.triggerPreviewTiles(); showToast('建物データを取得中...') }
+      )
+      return
+    }
+    actions.play()
+  })
   container.querySelector('[data-action="stop"]').addEventListener('click', () => actions.stop())
 
   container.querySelector('[data-action="reset"]').addEventListener('click', () => {
     if (state.composition.points.length === 0) return
-    if (confirm('すべての点をリセットしますか？ (global 設定と地図視点は維持)')) {
-      actions.resetPoints()
-      showToast('点をリセットしました')
-    }
+    showToastWithCta(
+      'すべての点をリセットしますか？ (global 設定と地図視点は維持)',
+      '✓ リセット実行',
+      () => { actions.resetPoints(); showToast('点をリセットしました') }
+    )
   })
 
   container.querySelector('[data-action="preview-tiles"]').addEventListener('click', async () => {
@@ -159,10 +193,13 @@ export function mountTopbar(container, { state, actions, subscribe }) {
     }
   })
 
-  // state 変化に応じて aria-pressed を更新（外部からの変更にも追従）
+  // state 変化に応じて aria-pressed / Preview tiles の状態を更新
   subscribe(s => {
     polylineBtn.setAttribute('aria-pressed', String(s.showPolyline))
     viewerOnlyBtn.setAttribute('aria-pressed', String(s.viewerOnly))
+    previewTilesBtn.dataset.tilesState = s.tilesLoaded ? 'loaded' : 'needed'
+    previewTilesBtn.disabled = s.tilesLoading
+    previewTilesBtn.textContent = s.tilesLoading ? '⏳ 読込中...' : '🏙️ 建物を読込'
   })
 }
 
