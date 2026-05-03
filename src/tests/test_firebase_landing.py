@@ -27,8 +27,10 @@ def test_firebase_landing_exists(html: str) -> None:
 
 
 def test_cta_points_to_cloud_run_viewer(html: str) -> None:
-    """The 'アプリを試す' CTA must go DIRECTLY to /viewer/ (skip /start)."""
-    assert 'href="https://tokyo-3d-drone-tcus2zi5tq-an.a.run.app/viewer/"' in html
+    """The 'アプリを試す' CTA must go DIRECTLY to /viewer/ (skip /start).
+    UTM パラメータが付いても /viewer/ への href であれば OK。
+    """
+    assert 'href="https://tokyo-3d-drone-tcus2zi5tq-an.a.run.app/viewer/' in html
     # No leftover /start link should remain on Firebase landing
     assert "/start" not in html
 
