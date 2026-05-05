@@ -41,6 +41,29 @@ def test_post_composition_returns_id_and_url(
 @patch("app.api.routes_compositions.composition_service")
 @patch("app.api.routes_compositions.board_service")
 @patch("app.api.routes_compositions.verify_recaptcha")
+def test_post_composition_url_uses_x_forwarded_proto(
+    mock_recaptcha, mock_board_service, mock_comp_service
+):
+    """Cloud Run プロキシ経由では X-Forwarded-Proto: https を使って https:// URL を生成する。"""
+    mock_recaptcha.return_value = None
+    mock_board_service.hash_ip.return_value = "h"
+    mock_board_service.check_rate_limit.return_value = True
+    mock_comp_service.save_composition.return_value = "abc12345"
+
+    client = TestClient(app)
+    r = client.post(
+        "/api/v1/compositions",
+        json=VALID_BODY,
+        headers={"X-Forwarded-Proto": "https"},
+    )
+    assert r.status_code == 201
+    body = r.json()
+    assert body["url"].startswith("https://"), f"Expected https://, got: {body['url']}"
+
+
+@patch("app.api.routes_compositions.composition_service")
+@patch("app.api.routes_compositions.board_service")
+@patch("app.api.routes_compositions.verify_recaptcha")
 def test_post_invalid_payload_returns_422(
     mock_recaptcha, mock_board_service, mock_comp_service
 ):

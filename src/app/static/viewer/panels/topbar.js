@@ -124,8 +124,14 @@ export function mountTopbar(container, { state, actions, subscribe }) {
     try {
       const token = await getRecaptchaToken('save_composition')
       const url = await saveAndShare(state.composition, { recaptchaToken: token })
-      await copyToClipboard(url)
-      showToast(`保存しました（URL コピー済み）：${url}`)
+      // clipboard write は save 後の async context で失敗することがあるため、
+      // 成功・失敗いずれでも URL を toast に表示してユーザーが手動コピーできるようにする
+      try {
+        await copyToClipboard(url)
+        showToast(`✅ 保存完了（URLをコピーしました）: ${url}`)
+      } catch {
+        showToast(`✅ 保存完了（URLを手動でコピーしてください）: ${url}`)
+      }
     } catch (e) {
       showToast(`保存に失敗: ${e.message}`)
     }

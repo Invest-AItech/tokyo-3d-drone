@@ -53,12 +53,16 @@ def _client_ip(request: Request) -> str:
     return request.client.host if request.client else "0.0.0.0"
 
 
+def _request_scheme(request: Request) -> str:
+    return request.headers.get("x-forwarded-proto", request.url.scheme)
+
+
 def _spec_url(request: Request) -> str:
-    return f"{request.url.scheme}://{request.url.netloc}/viewer/spec"
+    return f"{_request_scheme(request)}://{request.url.netloc}/viewer/spec"
 
 
 def _public_id_url(request: Request, composition_id: str) -> str:
-    return f"{request.url.scheme}://{request.url.netloc}/viewer/?id={composition_id}"
+    return f"{_request_scheme(request)}://{request.url.netloc}/viewer/?id={composition_id}"
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
