@@ -91,7 +91,7 @@ jobs:
             --port=8080 \
             --service-account=tokyo-3d-drone-runtime@plateau-3d-app.iam.gserviceaccount.com \
             --set-secrets=GOOGLE_PLACES_API_KEY=google-places-api-key:latest,MAPTILER_API_KEY=MAPTILER_API_KEY:latest,IP_HASH_SALT=IP_HASH_SALT:latest \
-            --set-env-vars=RUNTIME_ROOT=/app/runtime,GCS_DATASETS_PATH=/gcs-data/datasets,RECAPTCHA_SITE_KEY=${{ secrets.RECAPTCHA_SITE_KEY }},RECAPTCHA_SCORE_THRESHOLD=0.5,RATE_LIMIT_WINDOW_SEC=60,RATE_LIMIT_MAX_POSTS=5 \
+            --set-env-vars=RUNTIME_ROOT=/app/runtime,GCS_DATASETS_PATH=/gcs-data/datasets,FIRESTORE_PROJECT_ID=${{ vars.GCP_PROJECT_ID }},RECAPTCHA_SITE_KEY=${{ secrets.RECAPTCHA_SITE_KEY }},RECAPTCHA_SCORE_THRESHOLD=0.5,RATE_LIMIT_WINDOW_SEC=60,RATE_LIMIT_MAX_POSTS=5 \
             --add-volume=name=gcs-vol,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
             --add-volume-mount=volume=gcs-vol,mount-path=/gcs-data
 
