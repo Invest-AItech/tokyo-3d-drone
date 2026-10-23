@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pytest
 from fastapi import HTTPException
-from google.cloud import firestore
 from starlette.requests import Request
 
 from app.config import Settings
@@ -23,17 +22,22 @@ class _Doc:
     def __init__(self, store, key):
         self._store, self._key = store, key
 
-    def get(self):
+    def get(self, transaction=None, **kwargs):
+        assert transaction is not None, "reads must happen inside the transaction"
+        assert kwargs.get("timeout") and kwargs.get("retry") is not None
         return _Snap(self._store.get(self._key))
 
-    def set(self, data, merge=False):
-        cur = dict(self._store.get(self._key) or {}) if merge else {}
-        for k, v in data.items():
-            if isinstance(v, firestore.Increment):
-                cur[k] = cur.get(k, 0) + v.value
-            else:
-                cur[k] = v
-        self._store[self._key] = cur
+
+class FakeTxn:
+    def __init__(self, store):
+        self._store = store
+        self.writes = 0
+
+    def set(self, ref, data, merge=False):
+        self.writes += 1
+        cur = dict(self._store.get(ref._key) or {}) if merge else {}
+        cur.update(data)
+        self._store[ref._key] = cur
 
 
 class _Coll:
@@ -52,6 +56,10 @@ class FakeFirestore:
         assert name == COLLECTION_NAME
         return _Coll(self.store)
 
+    def transaction(self, max_attempts=5):
+        self.txn = FakeTxn(self.store)
+        return self.txn
+
 
 def make_request(xff: str | None = None, host: str = "9.9.9.9") -> Request:
     headers = [(b"x-forwarded-for", xff.encode())] if xff is not None else []
@@ -62,6 +70,17 @@ def make_request(xff: str | None = None, host: str = "9.9.9.9") -> Request:
 def fake_db(monkeypatch):
     db = FakeFirestore()
     monkeypatch.setattr(rl, "_get_client", lambda: db)
+    used = []
+
+    def fake_transactional(fn):
+        def run(txn, *args):
+            used.append(fn.__name__)
+            return fn(txn, *args)
+
+        return run
+
+    monkeypatch.setattr(rl.firestore, "transactional", fake_transactional)
+    db.transactional_used = used
     return db
 
 
@@ -241,3 +260,26 @@ def test_details_endpoint_429_without_calling_google():
         app.dependency_overrides.clear()
     assert res.status_code == 429
     assert not google.called
+
+
+def test_check_runs_in_transaction_and_writes_both_docs(fake_db):
+    s = Settings()
+    count(s, "autocomplete")
+    assert fake_db.transactional_used == ["_apply_limits"]
+    assert fake_db.txn.writes == 2
+
+
+def test_rejected_call_writes_nothing(fake_db):
+    s = Settings(rl_autocomplete_window_max=1)
+    count(s, "autocomplete")
+    with pytest.raises(HTTPException):
+        count(s, "autocomplete")
+    assert fake_db.txn.writes == 0
+
+
+def test_exactly_at_limit_is_rejected_one_below_is_allowed(fake_db):
+    s = Settings(rl_autocomplete_window_max=2, rl_autocomplete_day_max=100, rl_autocomplete_global_day_max=100)
+    count(s, "autocomplete")
+    count(s, "autocomplete")  # 2nd allowed (count 1 < 2)
+    with pytest.raises(HTTPException):  # 3rd: 2 >= 2
+        count(s, "autocomplete")

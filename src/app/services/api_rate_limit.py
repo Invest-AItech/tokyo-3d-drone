@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, Request
+from google.api_core.retry import Retry
 from google.cloud import firestore
 
 from app.config import Settings
@@ -82,15 +83,23 @@ def _decide(recent: list[datetime], now: datetime, window_sec: int, limits: Limi
     return sum(1 for ts in recent if ts > cutoff) < limits.window_max
 
 
-def _check_firestore(
-    scope: str, ip_hash: str, now: datetime, window_sec: int, limits: Limits
+FIRESTORE_TIMEOUT_S = 3.0
+TXN_MAX_ATTEMPTS = 3
+
+
+def _apply_limits(
+    txn, ip_ref, glb_ref, now: datetime, window_sec: int, limits: Limits
 ) -> bool:
-    db = _get_client()
-    ip_ref = db.collection(COLLECTION).document(f"{scope}_{ip_hash}")
-    glb_ref = db.collection(COLLECTION).document(f"global_{scope}_{now:%Y%m%d}")
+    """Runs inside a Firestore transaction: all reads first, then the writes."""
+    read_kw = {
+        "transaction": txn,
+        "timeout": FIRESTORE_TIMEOUT_S,
+        "retry": Retry(deadline=FIRESTORE_TIMEOUT_S),
+    }
+    snap = ip_ref.get(**read_kw)
+    gsnap = glb_ref.get(**read_kw)
 
     day_cutoff = now - timedelta(seconds=DAY_SEC)
-    snap = ip_ref.get()
     recent: list[datetime] = []
     if snap.exists:
         for ts in (snap.to_dict() or {}).get("recent", []):
@@ -99,16 +108,26 @@ def _check_firestore(
                 recent.append(ts)
     if not _decide(recent, now, window_sec, limits):
         return False
-
-    gsnap = glb_ref.get()
     count = int((gsnap.to_dict() or {}).get("count", 0)) if gsnap.exists else 0
     if count >= limits.global_day_max:
         return False
 
     recent.append(now)
-    ip_ref.set({"recent": recent, "updatedAt": now}, merge=True)
-    glb_ref.set({"count": firestore.Increment(1), "updatedAt": now}, merge=True)
+    txn.set(ip_ref, {"recent": recent, "updatedAt": now}, merge=True)
+    txn.set(glb_ref, {"count": count + 1, "updatedAt": now}, merge=True)
     return True
+
+
+def _check_firestore(
+    scope: str, ip_hash: str, now: datetime, window_sec: int, limits: Limits
+) -> bool:
+    db = _get_client()
+    ip_ref = db.collection(COLLECTION).document(f"{scope}_{ip_hash}")
+    glb_ref = db.collection(COLLECTION).document(f"global_{scope}_{now:%Y%m%d}")
+    txn = db.transaction(max_attempts=TXN_MAX_ATTEMPTS)
+    return firestore.transactional(_apply_limits)(
+        txn, ip_ref, glb_ref, now, window_sec, limits
+    )
 
 
 def _check_memory(
