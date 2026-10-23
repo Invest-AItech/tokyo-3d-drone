@@ -41,6 +41,16 @@ class Settings(BaseSettings):
     rate_limit_window_sec: int = 60
     rate_limit_max_posts: int = 5
     firestore_project_id: str = ""
+
+    # ---- App-side rate limits for paid Google API proxies ----
+    api_rate_limit_enabled: bool = True
+    api_rate_limit_window_sec: int = 600
+    rl_autocomplete_window_max: int = 60
+    rl_autocomplete_day_max: int = 300
+    rl_autocomplete_global_day_max: int = 1000
+    rl_details_window_max: int = 30
+    rl_details_day_max: int = 150
+    rl_details_global_day_max: int = 500
     preset_url_allowed_hosts: str = "invest-aitech-tokyo-drone.web.app,localhost,127.0.0.1"
 
     firebase_landing_url: str = "https://invest-aitech-tokyo-drone.web.app/"

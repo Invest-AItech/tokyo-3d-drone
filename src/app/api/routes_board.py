@@ -16,6 +16,7 @@ from fastapi import APIRouter, HTTPException, Request, Response, status
 from app.config import get_settings
 from app.core.board_models import LikeResponse, PostCreate, PostList
 from app.services import board_service
+from app.services.api_rate_limit import client_ip
 from app.services.recaptcha_service import RecaptchaFailed, verify_recaptcha
 
 logger = logging.getLogger(__name__)
@@ -43,11 +44,8 @@ def _ensure_anon_cookie(request: Request, response: Response) -> str:
 
 
 def _client_ip(request: Request) -> str:
-    """Cloud Run forwards real IP via X-Forwarded-For (first entry)."""
-    xff = request.headers.get("x-forwarded-for", "")
-    if xff:
-        return xff.split(",")[0].strip()
-    return request.client.host if request.client else "0.0.0.0"
+    """Cloud Run appends the real client IP to the END of X-Forwarded-For."""
+    return client_ip(request)
 
 
 @router.post("/posts", status_code=status.HTTP_201_CREATED)

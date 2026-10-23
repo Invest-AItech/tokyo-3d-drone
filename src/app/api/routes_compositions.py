@@ -16,6 +16,7 @@ from app.config import get_settings as _get_settings_for_tileset
 from app.core.composition_models import Composition
 from app.core.models import CorridorQuery, CreateRequestBody, QueryPoint
 from app.services import board_service, composition_service
+from app.services.api_rate_limit import client_ip
 from app.services.recaptcha_service import RecaptchaFailed, verify_recaptcha
 from app.services.tileset_service import TilesetRequestService
 
@@ -47,10 +48,8 @@ class CompositionCreate(Composition):
 
 
 def _client_ip(request: Request) -> str:
-    xff = request.headers.get("x-forwarded-for", "")
-    if xff:
-        return xff.split(",")[0].strip()
-    return request.client.host if request.client else "0.0.0.0"
+    """Cloud Run appends the real client IP to the END of X-Forwarded-For."""
+    return client_ip(request)
 
 
 def _request_scheme(request: Request) -> str:

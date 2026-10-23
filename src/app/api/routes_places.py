@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.config import Settings, get_settings
+from app.services.api_rate_limit import enforce_rate_limit
 from app.core.places_models import (
     AutocompleteRequest,
     AutocompleteResponse,
@@ -24,6 +25,7 @@ router = APIRouter(prefix="/places", tags=["places"])
 @router.post("/autocomplete", response_model=AutocompleteResponse)
 def post_autocomplete(
     payload: AutocompleteRequest,
+    request: Request,
     settings: Settings = Depends(get_settings),
 ) -> AutocompleteResponse:
     """Tokyo 23 BB 制限付きで Autocomplete を呼ぶ。0 件なら制限なしで再問合せして
@@ -32,6 +34,7 @@ def post_autocomplete(
     if not settings.google_places_api_key:
         raise HTTPException(status_code=500, detail="GOOGLE_PLACES_API_KEY is not configured")
 
+    enforce_rate_limit(request, "autocomplete", settings)  # Google を呼ぶ前に数える
     try:
         primary = autocomplete(
             query=payload.query,
@@ -53,6 +56,8 @@ def post_autocomplete(
 
     # 制限あり 0 件 → 制限なしで再問合せして区別。
     # 同じ session_token を引き継ぐと Google 側で 1 セッション扱いになるため引継ぐ。
+    # 2 回目の Google 呼び出しも 1 回として数える。
+    enforce_rate_limit(request, "autocomplete", settings)
     try:
         fallback = autocomplete(
             query=payload.query,
@@ -77,11 +82,13 @@ def post_autocomplete(
 @router.post("/details", response_model=PlaceDetailsResponse)
 def post_details(
     payload: PlaceDetailsRequest,
+    request: Request,
     settings: Settings = Depends(get_settings),
 ) -> PlaceDetailsResponse:
     if not settings.google_places_api_key:
         raise HTTPException(status_code=500, detail="GOOGLE_PLACES_API_KEY is not configured")
 
+    enforce_rate_limit(request, "details", settings)  # Google を呼ぶ前に数える
     try:
         details = get_place_details(
             place_id=payload.place_id,
