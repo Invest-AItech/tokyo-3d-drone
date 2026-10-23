@@ -32,3 +32,17 @@ def client(settings: Settings) -> TestClient:
     app.dependency_overrides[get_settings] = lambda: settings
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def _isolate_api_rate_limit(monkeypatch):
+    """Never touch real Firestore; start every test with empty in-memory counters."""
+    from app.services import api_rate_limit
+
+    def _no_firestore():
+        raise RuntimeError("firestore disabled in tests")
+
+    monkeypatch.setattr(api_rate_limit, "_get_client", _no_firestore)
+    api_rate_limit.reset_memory_state()
+    yield
+    api_rate_limit.reset_memory_state()
